@@ -38,7 +38,7 @@ pdForms.isRuleOptional = function(rule) {
 
 
 /**
- * Validates ever-focused inputs, using data-nette-rules and data-pd-rules.
+ * Validates ever-focused inputs, using data-nette-rules and data-pd-rules. Validates all grouped elements together.
  */
 pdForms.validateInput = function(e, $inputs) {
 	var $validate = $(this);
@@ -51,9 +51,6 @@ pdForms.validateInput = function(e, $inputs) {
 
 	$validate.each(function() {
 		if ($(this).data('ever-focused')) {
-			// assumes the input is valid, therefore removing all messages
-			pdForms.removeMessages(this);
-
 			// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
 			Nette.validateControl(this);
 		}
@@ -296,6 +293,9 @@ Nette.validateRule = function(elem, op, arg) {
  */
 var tmp_Nette_validateControl = Nette.validateControl;
 Nette.validateControl = function(elem, rules, onlyCheck) {
+	// assumes the input is valid, therefore removing all messages
+	pdForms.removeMessages(elem);
+
 	if (!elem.nodeName) { // RadioNodeList
 		elem = elem[0];
 	}
