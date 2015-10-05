@@ -366,7 +366,7 @@ var tmp_Nette_validateForm = Nette.validateForm;
 Nette.validateForm = function(sender) {
 	var form = sender.form || sender;
 	$(form).find('.js-validation-global')
-		.find('.inp-' + String(pdForms.const).split(' ').join(', .inp-')).remove();
+		.find('.' + String(pdForms.const).split(' ').join('-message, .') + '-message').remove();
 
 	return tmp_Nette_validateForm(sender);
 };
