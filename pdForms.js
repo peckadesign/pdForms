@@ -3,7 +3,7 @@
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
  * - add support for "asynchronous" validation rules - validation depends on async AJAX response; limitations:
- *   - async rule cannot be used as condition!!!
+ *   - async rule cannot be used as condition!
  *   - async rule cannot be used as non-optional (blocking), may be fixed someday
  *
  * Created by Radek Šerý and Vít Kutný
@@ -201,6 +201,14 @@ pdForms.asyncCallbacks = {
 
 /**
  * Display message. Either input associated or (if appropriate selector not found) as "global" form message.
+ * Message placeholding:
+ * 	1. First we try to find elements parent .pdforms-messages-input
+ * 	2. If there is not any, then try to find closest p
+ * 	3. If still no success, try to find .pdforms-messages-global
+ *
+ * Using data-pdforms-messages-prepend we could prepend the message to placeholder found in previous steps.
+ * Using data-pdforms-messages-tagname we could change the default span (p in case of global messages) element.
+ * Using data-pdforms-messages-global on elem we could force the message to be displayed in global message placeholder.
  */
 pdForms.addMessage = function(elem, message, type) {
 	if (! message)
@@ -209,18 +217,37 @@ pdForms.addMessage = function(elem, message, type) {
 	if (! type in pdForms.const)
 		type = pdForms.const.ERROR_MESSAGE;
 
-	var $p = $(elem).closest('p, .js-validation-input');
-	var $placeholder = null;
+	var tagName = 'span';
+	var className = 'inp-' + type;
+	var globalMessage = $(elem).data('pdforms-messages-global') || false;
 
-	if ($p.length === 0 && ($placeholder = $(elem).closest('form').find('.js-validation-global')).length) {
-		$p = $('<p class="message ' + type + '-message"></p>');
-		$placeholder.append($p);
+	var $placeholder = $(elem).closest('.pdforms-messages-input');
+	var $msg = '';
+
+	if ($placeholder.length === 0) {
+		$placeholder = $(elem).closest('p');
 	}
 
-	// we show only first error message and all other messages
-	if (message && (type !== pdForms.const.ERROR_MESSAGE || (type === pdForms.const.ERROR_MESSAGE && ! $p.hasClass(type)))) {
-		$p.addClass(type)
-			.append('<span class="inp-' + type + '">' + message + '</span>');
+	if ((globalMessage || $placeholder.length === 0) && ($placeholder = $(elem).closest('form').find('.pdforms-messages-global')).length) {
+		tagName = 'p';
+		globalMessage = true;
+	}
+
+	if ($placeholder.length) {
+		// global message or non-error message or first error message
+		if (globalMessage || type !== pdForms.const.ERROR_MESSAGE || (type === pdForms.const.ERROR_MESSAGE && ! $placeholder.hasClass(type))) {
+			tagName = $placeholder.data('pdforms-messages-tagname') || tagName;
+			className = (tagName === 'p') ? 'message ' + type + '-message' : className;
+
+			$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('id') + '">' + message + '</' + tagName + '>');
+
+			if (! globalMessage)
+				$placeholder.addClass(type);
+			$(elem).closest('.pdforms-messages-input, p').addClass(type);
+
+
+			$placeholder.data('pdforms-messages-prepend') ? $placeholder.prepend($msg) : $placeholder.append($msg);
+		}
 	}
 };
 
@@ -229,9 +256,21 @@ pdForms.addMessage = function(elem, message, type) {
  * Removes all messages associated with input.
  */
 pdForms.removeMessages = function(elem) {
-	$(elem).closest('p, .js-validation-input')
-		.removeClass(String(pdForms.const))
-		.find('.inp-' + String(pdForms.const).split(' ').join(', .inp-')).remove();
+	var $placeholder = $(elem).parents('p, .pdforms-messages-input');
+
+	$placeholder.removeClass(String(pdForms.const));
+	$placeholder.find('.pdforms-message').remove();
+
+
+	// global messages
+	var id = $(elem).attr('id');
+	$global = $(elem).closest('form').find('.pdforms-messages-global');
+	$global
+		.find('.pdforms-message')
+		.filter(function() {
+			return $(this).data('elem') === id;
+		})
+		.remove();
 };
 
 
@@ -356,17 +395,4 @@ Nette.initForm = function (form) {
 	$inputs.filter(':not(:radio, :checkbox, select)').on('blur', validateInputApplied);
 	$inputs.filter(':radio, :checkbox').on('change', validateInputApplied);
 	$inputs.filter('select').on('blur change', validateInputApplied);
-};
-
-
-/**
- * Validates whole form.
- */
-var tmp_Nette_validateForm = Nette.validateForm;
-Nette.validateForm = function(sender) {
-	var form = sender.form || sender;
-	$(form).find('.js-validation-global')
-		.find('.' + String(pdForms.const).split(' ').join('-message, .') + '-message').remove();
-
-	return tmp_Nette_validateForm(sender);
 };
