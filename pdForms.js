@@ -239,7 +239,7 @@ pdForms.addMessage = function(elem, message, type) {
 			tagName = $placeholder.data('pdforms-messages-tagname') || tagName;
 			className = (tagName === 'p') ? 'message ' + type + '-message' : className;
 
-			$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('id') + '">' + message + '</' + tagName + '>');
+			$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('name') + '">' + message + '</' + tagName + '>');
 
 			if (! globalMessage)
 				$placeholder.addClass(type);
@@ -263,12 +263,12 @@ pdForms.removeMessages = function(elem) {
 
 
 	// global messages
-	var id = $(elem).attr('id');
+	var name = $(elem).attr('name');
 	$global = $(elem).closest('form').find('.pdforms-messages-global');
 	$global
 		.find('.pdforms-message')
 		.filter(function() {
-			return $(this).data('elem') === id;
+			return $(this).data('elem') === name;
 		})
 		.remove();
 };
