@@ -39,6 +39,7 @@ pdForms.isRuleOptional = function(rule) {
 
 /**
  * Validates ever-focused inputs, using data-nette-rules and data-pd-rules. Validates all grouped elements together.
+ * This function is not used when validating whole form, eg. by submit event.
  */
 pdForms.validateInput = function(e, $inputs) {
 	var $validate = $(this);
@@ -206,6 +207,11 @@ pdForms.asyncCallbacks = {
  * 	2. If there is not any, then try to find closest p
  * 	3. If still no success, try to find .pdforms-messages-global
  *
+ * If two or more inputs with validation rules are in same message placeholder (eg. <p> or .pdforms-messages-input), the
+ * validation won't work as expected - class .error will be determined by last validated input in the placeholder and
+ * messages may disappear unexpectedly :) In that case, you might be better with using .pdforms-messages-global or splitting
+ * the <p> (.pdforms-messages-input) to two.
+ *
  * Using data-pdforms-messages-prepend we could prepend the message to placeholder found in previous steps.
  * Using data-pdforms-messages-tagname we could change the default span (p in case of global messages) element.
  * Using data-pdforms-messages-global on elem we could force the message to be displayed in global message placeholder.
@@ -332,13 +338,15 @@ Nette.validateRule = function(elem, op, arg) {
  */
 var tmp_Nette_validateControl = Nette.validateControl;
 Nette.validateControl = function(elem, rules, onlyCheck) {
-	// assumes the input is valid, therefore removing all messages
-	pdForms.removeMessages(elem);
 
 	if (!elem.nodeName) { // RadioNodeList
 		elem = elem[0];
 	}
 	rules = rules || Nette.parseJSON(elem.getAttribute('data-nette-rules'));
+
+	// no rules -> skip element validation
+	if (rules.length === 0)
+		return true;
 
 	// shallow copy only!
 	var netteRules = rules.slice(0);
@@ -365,6 +373,10 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 		}
 	}
 
+	// assumes the input is valid, therefore removing all messages
+	pdForms.removeMessages(elem);
+
+	// validate
 	ret = tmp_Nette_validateControl(elem, netteRules, onlyCheck);
 
 	pdForms.validateControl(elem, pdRules);
