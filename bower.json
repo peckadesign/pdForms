@@ -11,6 +11,6 @@
 	"license": "MIT",
 	"dependencies": {
 		"jquery": ">=1.7",
-		"nette-forms": "~2.3.0"
+		"nette-forms": "~2.2"
 	}
 }
