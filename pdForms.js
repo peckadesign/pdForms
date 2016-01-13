@@ -15,7 +15,7 @@ var pdForms = pdForms || {};
 /**
  * Constants for messages. Used in CSS class names.
  */
-pdForms.const = {
+pdForms.constants = {
 	ERROR_MESSAGE: 'error',
 	INFO_MESSAGE: 'info',
 	OK_MESSAGE: 'ok',
@@ -79,10 +79,10 @@ pdForms.validateControl = function(elem, rules) {
 		// if rule is async, then do not write any message
 		if (! async) {
 			if (! valid) {
-				pdForms.addMessage(elem, rules[id].msg.invalid, pdForms.const.INFO_MESSAGE);
+				pdForms.addMessage(elem, rules[id].msg.invalid, pdForms.constants.INFO_MESSAGE);
 			}
 			else if ('valid' in rules[id].msg) {
-				pdForms.addMessage(elem, rules[id].msg.valid, pdForms.const.OK_MESSAGE);
+				pdForms.addMessage(elem, rules[id].msg.valid, pdForms.constants.OK_MESSAGE);
 			}
 		}
 	}
@@ -159,11 +159,11 @@ pdForms.asyncEvaluate = function(elem, op, status, payload) {
 			switch (status) {
 				case 'invalid':
 				case 'timeout':
-					pdForms.addMessage(elem, msg[status], pdForms.const.INFO_MESSAGE);
+					pdForms.addMessage(elem, msg[status], pdForms.constants.INFO_MESSAGE);
 					break;
 
 				case 'valid':
-					pdForms.addMessage(elem, msg.valid, pdForms.const.OK_MESSAGE);
+					pdForms.addMessage(elem, msg.valid, pdForms.constants.OK_MESSAGE);
 					break;
 			}
 		}
@@ -220,8 +220,8 @@ pdForms.addMessage = function(elem, message, type) {
 	if (! message)
 		return false;
 
-	if (! type in pdForms.const)
-		type = pdForms.const.ERROR_MESSAGE;
+	if (! type in pdForms.constants)
+		type = pdForms.constants.ERROR_MESSAGE;
 
 	var tagName = 'span';
 	var className = 'inp-' + type;
@@ -241,7 +241,7 @@ pdForms.addMessage = function(elem, message, type) {
 
 	if ($placeholder.length) {
 		// global message or non-error message or first error message
-		if (globalMessage || type !== pdForms.const.ERROR_MESSAGE || (type === pdForms.const.ERROR_MESSAGE && ! $placeholder.hasClass(type))) {
+		if (globalMessage || type !== pdForms.constants.ERROR_MESSAGE || (type === pdForms.constants.ERROR_MESSAGE && ! $placeholder.hasClass(type))) {
 			tagName = $placeholder.data('pdforms-messages-tagname') || tagName;
 			className = (tagName === 'p') ? 'message ' + type + '-message' : className;
 
@@ -264,7 +264,7 @@ pdForms.addMessage = function(elem, message, type) {
 pdForms.removeMessages = function(elem) {
 	var $placeholder = $(elem).parents('p, .pdforms-messages-input');
 
-	$placeholder.removeClass(String(pdForms.const));
+	$placeholder.removeClass(String(pdForms.constants));
 	$placeholder.find('.pdforms-message').remove();
 
 
@@ -306,7 +306,7 @@ pdForms.validators = {
  * Display error message.
  */
 Nette.addError = function(elem, message) {
-	pdForms.addMessage(elem, message, pdForms.const.ERROR_MESSAGE);
+	pdForms.addMessage(elem, message, pdForms.constants.ERROR_MESSAGE);
 };
 
 
