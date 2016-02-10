@@ -3,8 +3,20 @@
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
  * - add support for "asynchronous" validation rules - validation depends on async AJAX response; limitations:
- *   - async rule cannot be used as condition!
- *   - async rule cannot be used as non-optional (blocking), may be fixed someday
+ *   - async rule cannot be used as condition! (might be possible by using similar technique as with mandatory async rules)
+ *   - mandatory async rule won't block form submit (in JS), so the page reloads (form won't be submitted because of
+ *     server side check), check the todo list
+ *
+ *  TODO:
+ *  - mandatory async rules:
+ *    - create new array asyncErrors
+ *    - on async rule error (in asyncEvaluate), flag is stored in asyncErrors, if the same field is valid later, flag
+ *      is removed; only mandatory rules will appear here
+ *    - rewrite Nette.validateForm:
+ *      - call original Nette.validateForm, if it returns false, return false, if true, proceed
+ *      - in interval check if asyncQueue (unprocessed rules) is empty (doesn't contain any mandatory async rule)
+ *      - when all mandatory async rules are processed (prior step is done), check if asyncErrors is empty - if so
+ *        return true, otherwise return false
  *
  * Created by Radek Šerý and Vít Kutný
  */
@@ -33,7 +45,7 @@ pdForms.constants = {
 
 
 pdForms.isRuleOptional = function(rule) {
-	return 'arg' in rule && typeof rule.arg === 'object' && 'optional' in rule.arg && rule.arg.optional;
+	return Boolean(rule.arg) && typeof rule.arg === 'object' && 'optional' in rule.arg && rule.arg.optional;
 };
 
 
@@ -71,7 +83,10 @@ pdForms.validateControl = function(elem, rules) {
 		// if async validator is used, validate & push into queue of not-yet resolved rules
 		if (async) {
 			var key = pdForms.asyncGetQueueKey(elem, op);
-			pdForms.asyncQueue[key] = rules[id].msg;
+			pdForms.asyncQueue[key] = {
+				msg: rules[id].msg,
+				optional: rules[id].optional
+			};
 		}
 
 		var valid = tmp_Nette_validateControl(elem, [rules[id]], true);
@@ -79,13 +94,20 @@ pdForms.validateControl = function(elem, rules) {
 		// if rule is async, then do not write any message
 		if (! async) {
 			if (! valid) {
-				pdForms.addMessage(elem, rules[id].msg.invalid, pdForms.constants.INFO_MESSAGE);
+				var msg = typeof rules[id].msg === 'object' ? rules[id].msg.invalid : rules[id].msg;
+				pdForms.addMessage(elem, msg, rules[id].optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+
+				if ( ! rules[id].optional) {
+					return valid;
+				}
 			}
-			else if ('valid' in rules[id].msg) {
+			else if (typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
 				pdForms.addMessage(elem, rules[id].msg.valid, pdForms.constants.OK_MESSAGE);
 			}
 		}
 	}
+
+	return true;
 };
 
 
@@ -118,9 +140,9 @@ pdForms.asyncGetQueueKey = function(elem, op) {
  * Returns default settings for AJAX rules based on parameters. Either to be used directly as param for $.nette.ajax
  * call or as a default settings to be extended by custom properties.
  */
-pdForms.asyncRequestSettings = function(elem, op, url, data) {
+pdForms.asyncRequestSettings = function(elem, op, arg, data) {
 	return {
-		url: url,
+		url: arg.url,
 		data: (data ? data : null),
 		timeout: 5000,
 		spinner: '.ajax-validation-spinner',
@@ -129,10 +151,10 @@ pdForms.asyncRequestSettings = function(elem, op, url, data) {
 			$(elem).addClass('inp-loading');
 		},
 		success: function(payload) {
-			pdForms.asyncEvaluate(elem, op, payload.valid ? 'valid' : 'invalid', payload);
+			pdForms.asyncEvaluate(elem, op, payload.valid ? 'valid' : 'invalid', payload, arg);
 		},
 		error: function(jqXHR, status, error, settings) {
-			pdForms.asyncEvaluate(elem, op, error);
+			pdForms.asyncEvaluate(elem, op, error, undefined, arg);
 		},
 		complete: function(jqXHR, status, settings) {
 			$(elem).removeClass('inp-loading');
@@ -146,18 +168,22 @@ pdForms.asyncRequestSettings = function(elem, op, url, data) {
  * For given element and operation write validation result message and remove from queue; called by AJAX validator
  * after response is received.
  */
-pdForms.asyncEvaluate = function(elem, op, status, payload) {
+pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
 	var key = pdForms.asyncGetQueueKey(elem, op);
 
 	// found request in queue, otherwise do nothing
 	if (key in pdForms.asyncQueue) {
-		msg = pdForms.asyncQueue[key];
+		msg = pdForms.asyncQueue[key].msg;
+		optional = pdForms.asyncQueue[key].optional;
 		delete pdForms.asyncQueue[key];
 
 		// write validation result message
 		if (status in msg && msg[status]) {
 			switch (status) {
 				case 'invalid':
+					pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+					break;
+
 				case 'timeout':
 					pdForms.addMessage(elem, msg[status], pdForms.constants.INFO_MESSAGE);
 					break;
@@ -170,7 +196,7 @@ pdForms.asyncEvaluate = function(elem, op, status, payload) {
 
 		// process callback if any
 		if (op in pdForms.asyncCallbacks && typeof pdForms.asyncCallbacks[op] === 'function') {
-			pdForms.asyncCallbacks[op](elem, payload);
+			pdForms.asyncCallbacks[op](elem, payload, arg);
 		}
 	}
 };
@@ -182,17 +208,14 @@ pdForms.asyncEvaluate = function(elem, op, status, payload) {
  * identify a rule as asynchronous).
  */
 pdForms.asyncCallbacks = {
-	'PdFormsRules_validTIN': function(elem, payload) {
-		if (typeof payload === 'object' && 'valid' in payload && payload.valid) {
-			var fields = {
-				name: '[company][name]',
-				vatNumber: '[company][ico]'
-			};
-
-			for (var i in fields) {
-				if (i in payload && payload[i] && ($inp = $('input[name$="' + fields[i] + '"]')).length && $inp.val() === '') {
-					$inp.val(payload[i])
-						.triggerHandler('blur');
+	'PdFormsRules_validTIN': function(elem, payload, arg) {
+		if (typeof payload === 'object' && 'valid' in payload && payload.valid && 'inputs' in arg) {
+			for (var input in arg.inputs) {
+				if (arg.inputs.hasOwnProperty(input) && payload.hasOwnProperty(input)) {
+					$input = $('#' + arg.inputs[input]);
+					if ($input.length && ! $input.val()) {
+						$input.val(payload[input]).triggerHandler('blur');
+					}
 				}
 			}
 		}
@@ -348,26 +371,8 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 	if (rules.length === 0)
 		return true;
 
-	// shallow copy only!
-	var netteRules = rules.slice(0);
-	var pdRules = rules.slice(0);
-
-	netteRules = netteRules.filter(function (rule) {
-		return ! pdForms.isRuleOptional(rule);
-	});
-
-	pdRules = pdRules.filter(function (rule) {
-		return pdForms.isRuleOptional(rule);
-	});
-
-	for (var i in netteRules) {
-		if ('msg' in netteRules[i] && typeof netteRules[i].msg === 'object' && 'invalid' in netteRules[i].msg) {
-			netteRules[i].msg = netteRules[i].msg.invalid;
-		}
-	}
-
-	// netteRules and pdRules are shallow copy of rules, therefore rules itself inside them are stored as references and might be edited
 	for (var j in rules) {
+		rules[j].optional = pdForms.isRuleOptional(rules[j]);
 		if ('arg' in rules[j] && typeof rules[j].arg === 'object' && 'data' in rules[j].arg) {
 			rules[j].arg = rules[j].arg.data;
 		}
@@ -376,11 +381,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 	// assumes the input is valid, therefore removing all messages
 	pdForms.removeMessages(elem);
 
-	// validate
-	ret = tmp_Nette_validateControl(elem, netteRules, onlyCheck);
-
-	pdForms.validateControl(elem, pdRules);
-
+	ret = pdForms.validateControl(elem, rules);
 	return ret;
 };
 
@@ -404,7 +405,10 @@ Nette.initForm = function (form) {
 		$.proxy(pdForms.validateInput, this, e, $inputs)();
 	};
 
-	$inputs.filter(':not(:radio, :checkbox, select)').on('blur', validateInputApplied);
+	$inputs.filter(':not(:radio, :checkbox, select, [data-pdforms-validate-on])').on('blur', validateInputApplied);
 	$inputs.filter(':radio, :checkbox').on('change', validateInputApplied);
 	$inputs.filter('select').on('blur change', validateInputApplied);
+	$inputs.filter('[data-pdforms-validate-on]').each(function() {
+		$(this).on($(this).data('pdforms-validate-on'), validateInputApplied);
+	});
 };
