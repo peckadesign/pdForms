@@ -44,6 +44,9 @@ pdForms.constants = {
 };
 
 
+pdForms.namespace = 'Pd\\Forms\\Rules::';
+
+
 pdForms.isRuleOptional = function(rule) {
 	return Boolean(rule.arg) && typeof rule.arg === 'object' && 'optional' in rule.arg && rule.arg.optional;
 };
@@ -58,7 +61,7 @@ pdForms.validateInput = function(e, $inputs) {
 
 	if (groupName = $(this).data('validation-group')) {
 		$validate = $inputs.filter(function() {
-			return $(this).data('validation-group') == groupName;
+			return $(this).data('validation-group') === groupName;
 		});
 	}
 
@@ -97,7 +100,7 @@ pdForms.validateControl = function(elem, rules) {
 				var msg = typeof rules[id].msg === 'object' ? rules[id].msg.invalid : rules[id].msg;
 				pdForms.addMessage(elem, msg, rules[id].optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
 
-				if ( ! rules[id].optional) {
+				if (! rules[id].optional) {
 					return valid;
 				}
 			}
@@ -338,7 +341,7 @@ Nette.addError = function(elem, message) {
  */
 var tmp_Nette_validateRule = Nette.validateRule;
 Nette.validateRule = function(elem, op, arg) {
-	var ret = tmp_Nette_validateRule(elem, op.substring(0, 16) == 'Pd\\Forms\\Rules::' ? op.substring(16) : op, arg);
+	var ret = tmp_Nette_validateRule(elem, op.substring(0, pdForms.namespace.length) === pdForms.namespace ? op.substring(pdForms.namespace.length) : op, arg);
 
 	if (ret === null) {
 		op = pdForms.formatOperation(op);
