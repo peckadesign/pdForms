@@ -338,7 +338,7 @@ Nette.addError = function(elem, message) {
  */
 var tmp_Nette_validateRule = Nette.validateRule;
 Nette.validateRule = function(elem, op, arg) {
-	var ret = tmp_Nette_validateRule(elem, op, arg);
+	var ret = tmp_Nette_validateRule(elem, op.substring(0, 16) == 'Pd\\Forms\\Rules::' ? op.substring(16) : op, arg);
 
 	if (ret === null) {
 		op = pdForms.formatOperation(op);
