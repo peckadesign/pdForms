@@ -18,6 +18,9 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.1.2
+- Všechny chybové zprávy jsou nyní mazány podle `name` atributu formulářového prvku. Díky tomu by mělo být možné zanořenovat více `.pdforms-messages-input` do sebe.
+
 ### v1.1.1
 - původní nette pravidla lze používat jako nepovinná
 

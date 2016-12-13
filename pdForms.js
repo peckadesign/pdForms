@@ -1,5 +1,11 @@
 /**
- * pdForms
+ * @name pdForms
+ *
+ * @author Radek Šerý <radek.sery@peckadesign.cz>
+ * @author Vít Kutný <vit.kutny@peckadesign.cz>
+ *
+ * @version 1.1.2
+ *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
  * - add support for "asynchronous" validation rules - validation depends on async AJAX response; limitations:
@@ -17,8 +23,6 @@
  *      - in interval check if asyncQueue (unprocessed rules) is empty (doesn't contain any mandatory async rule)
  *      - when all mandatory async rules are processed (prior step is done), check if asyncErrors is empty - if so
  *        return true, otherwise return false
- *
- * Created by Radek Šerý and Vít Kutný
  */
 
 var pdForms = pdForms || {};
