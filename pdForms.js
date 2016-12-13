@@ -288,17 +288,15 @@ pdForms.addMessage = function(elem, message, type) {
  * Removes all messages associated with input.
  */
 pdForms.removeMessages = function(elem) {
-	var $placeholder = $(elem).parents('p, .pdforms-messages-input');
+	var name = $(elem).attr('name');
+
+	var $placeholder = $(elem).closest('.pdforms-messages-input, p');
+	var $global = $(elem).closest('form').find('.pdforms-messages-global');
+
+	var $messages = $placeholder.add($global).find('.pdforms-message');
 
 	$placeholder.removeClass(String(pdForms.constants));
-	$placeholder.find('.pdforms-message').remove();
-
-
-	// global messages
-	var name = $(elem).attr('name');
-	$global = $(elem).closest('form').find('.pdforms-messages-global');
-	$global
-		.find('.pdforms-message')
+	$messages
 		.filter(function() {
 			return $(this).data('elem') === name;
 		})
