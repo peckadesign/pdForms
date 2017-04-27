@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.1.2
+ * @version 1.2.0
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -34,13 +34,14 @@ var pdForms = pdForms || {};
 pdForms.constants = {
 	ERROR_MESSAGE: 'error',
 	INFO_MESSAGE: 'info',
-	OK_MESSAGE: 'ok',
+	OK_MESSAGE: 'valid',
 
+	// returns searialized class names, each one prefixed with "pdforms-" string
 	toString: function() {
 		var s = '';
 
 		for (var i in this) {
-			s += (typeof this[i] !== 'function') ? ' ' + String(this[i]) : '';
+			s += (typeof this[i] !== 'function') ? ' pdforms-' + String(this[i]) : '';
 		}
 
 		return s.slice(1);
@@ -108,8 +109,9 @@ pdForms.validateControl = function(elem, rules) {
 					return valid;
 				}
 			}
-			else if (typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
-				pdForms.addMessage(elem, rules[id].msg.valid, pdForms.constants.OK_MESSAGE);
+			else {
+				var msg = typeof rules[id].msg === 'object' && 'valid' in rules[id].msg ? rules[id].msg.valid : null;
+				pdForms.addMessage(elem, msg, pdForms.constants.OK_MESSAGE);
 			}
 		}
 	}
@@ -247,22 +249,25 @@ pdForms.asyncCallbacks = {
  * Using data-pdforms-messages-global on elem we could force the message to be displayed in global message placeholder.
  */
 pdForms.addMessage = function(elem, message, type) {
-	if (! message)
-		return false;
-
-	if (! type in pdForms.constants)
+	if (! type in pdForms.constants) {
 		type = pdForms.constants.ERROR_MESSAGE;
+	}
+
+	var $placeholder = $(elem).closest('.pdforms-messages-input, p');
+
+	if ($placeholder.length) {
+		$placeholder.addClass('pdforms-' + type);
+	}
+
+	if (! message) {
+		return false;
+	}
 
 	var tagName = 'span';
 	var className = 'inp-' + type;
 	var globalMessage = $(elem).data('pdforms-messages-global') || false;
 
-	var $placeholder = $(elem).closest('.pdforms-messages-input');
 	var $msg = '';
-
-	if ($placeholder.length === 0) {
-		$placeholder = $(elem).closest('p');
-	}
 
 	if ((globalMessage || $placeholder.length === 0) && ($placeholder = $(elem).closest('form').find('.pdforms-messages-global')).length) {
 		tagName = 'p';
@@ -276,11 +281,6 @@ pdForms.addMessage = function(elem, message, type) {
 			className = (tagName === 'p') ? 'message ' + type + '-message' : className;
 
 			$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('name') + '">' + message + '</' + tagName + '>');
-
-			if (! globalMessage)
-				$placeholder.addClass(type);
-			$(elem).closest('.pdforms-messages-input, p').addClass(type);
-
 
 			$placeholder.data('pdforms-messages-prepend') ? $placeholder.prepend($msg) : $placeholder.append($msg);
 		}

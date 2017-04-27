@@ -10,13 +10,17 @@ $ cat bower.json
 	"name": "Projekt",
 	"private": true,
 	"dependencies": {
-		"pdForms": "peckadesign/pdForms#1.0.*"
+		"pdForms": "peckadesign/pdForms#1.2.*"
 	}
 }
 ```
 
 
 ## Changelog
+
+### v1.2.0
+- Název class přidávané na obalující element (nejbližší`.pdforms-messages-input` nebo `p`) jsou nyní prefixovány `pdforms-` (není zpětně kompatibilní).
+  - Třída se nově přidává i v případě validního inputu.
 
 ### v1.1.2
 - Všechny chybové zprávy jsou nyní mazány podle `name` atributu formulářového prvku. Díky tomu by mělo být možné zanořenovat více `.pdforms-messages-input` do sebe.
