@@ -109,12 +109,14 @@ pdForms.validateControl = function(elem, rules) {
 					return valid;
 				}
 			}
-			else {
-				var msg = typeof rules[id].msg === 'object' && 'valid' in rules[id].msg ? rules[id].msg.valid : null;
-				pdForms.addMessage(elem, msg, pdForms.constants.OK_MESSAGE);
+			else if (typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
+				pdForms.addMessage(elem, rules[id].msg.valid, pdForms.constants.OK_MESSAGE);
 			}
 		}
 	}
+
+	// add pdforms-valid class name if the input is valid
+	pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE);
 
 	return true;
 };
