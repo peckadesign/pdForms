@@ -18,6 +18,9 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.2.1
+- `pdForms.validateControl` respektuje parametr `onlyCheck`, který přichází z funkce `Nette.validateControl`. V případě nastavení jeho hodnoty na `true` validuje formulář, ale nezobrazuje validační chyby.
+
 ### v1.2.0
 - Název class přidávané na obalující element (nejbližší`.pdforms-messages-input` nebo `p`) jsou nyní prefixovány `pdforms-` (není zpětně kompatibilní).
   - Třída se nově přidává i v případě validního inputu.

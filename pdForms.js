@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.2.0
+ * @version 1.2.1
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -82,7 +82,7 @@ pdForms.validateInput = function(e, $inputs) {
 /**
  * Validates form element using optional nette-rules.
  */
-pdForms.validateControl = function(elem, rules) {
+pdForms.validateControl = function(elem, rules, onlyCheck) {
 	// validate rules one-by-one to know which passed
 	for (var id = 0, len = rules.length; id < len; id++) {
 		var op = pdForms.formatOperation(rules[id].op);
@@ -102,21 +102,25 @@ pdForms.validateControl = function(elem, rules) {
 		// if rule is async, then do not write any message
 		if (! async) {
 			if (! valid) {
-				var msg = typeof rules[id].msg === 'object' ? rules[id].msg.invalid : rules[id].msg;
-				pdForms.addMessage(elem, msg, rules[id].optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+				if (! onlyCheck) {
+					var msg = typeof rules[id].msg === 'object' ? rules[id].msg.invalid : rules[id].msg;
+					pdForms.addMessage(elem, msg, rules[id].optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+				}
 
 				if (! rules[id].optional) {
 					return valid;
 				}
 			}
-			else if (typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
+			else if (! onlyCheck && typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
 				pdForms.addMessage(elem, rules[id].msg.valid, pdForms.constants.OK_MESSAGE);
 			}
 		}
 	}
 
-	// add pdforms-valid class name if the input is valid
-	pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE);
+	if (! onlyCheck) {
+		// add pdforms-valid class name if the input is valid
+		pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE);
+	}
 
 	return true;
 };
@@ -388,7 +392,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 	// assumes the input is valid, therefore removing all messages
 	pdForms.removeMessages(elem);
 
-	ret = pdForms.validateControl(elem, rules);
+	ret = pdForms.validateControl(elem, rules, onlyCheck);
 	return ret;
 };
 
