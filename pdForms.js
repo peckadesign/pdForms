@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.2.1
+ * @version 1.2.2
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -97,22 +97,23 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 			};
 		}
 
-		var valid = tmp_Nette_validateControl(elem, [rules[id]], true);
+		var condition = !!rules[id].rules;
+		var valid = tmp_Nette_validateControl(elem, [rules[id]], ! condition);
 
 		// if rule is async, then do not write any message
 		if (! async) {
-			if (! valid) {
-				if (! onlyCheck) {
+			if (! onlyCheck) {
+				if (! valid) {
 					var msg = typeof rules[id].msg === 'object' ? rules[id].msg.invalid : rules[id].msg;
 					pdForms.addMessage(elem, msg, rules[id].optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
 				}
-
-				if (! rules[id].optional) {
-					return valid;
+				else if (typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
+					pdForms.addMessage(elem, rules[id].msg.valid, pdForms.constants.OK_MESSAGE);
 				}
 			}
-			else if (! onlyCheck && typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
-				pdForms.addMessage(elem, rules[id].msg.valid, pdForms.constants.OK_MESSAGE);
+
+			if (! valid && ! rules[id].optional) {
+				return valid;
 			}
 		}
 	}

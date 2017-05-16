@@ -18,6 +18,10 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.2.2
+- oprava validace podmíněných pravidel po přidání podpory `onlyCheck` do `pdForms.validateControl`
+- refactor přidávání validačních chyb (beze změny funčknosti)
+
 ### v1.2.1
 - `pdForms.validateControl` respektuje parametr `onlyCheck`, který přichází z funkce `Nette.validateControl`. V případě nastavení jeho hodnoty na `true` validuje formulář, ale nezobrazuje validační chyby.
 
