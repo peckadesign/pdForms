@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.2.2
+ * @version 1.2.3
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -83,6 +83,15 @@ pdForms.validateInput = function(e, $inputs) {
  * Validates form element using optional nette-rules.
  */
 pdForms.validateControl = function(elem, rules, onlyCheck) {
+	var hasAsyncRule = pdForms.hasAsyncRule(rules);
+
+	// if non-async ruleset or empty element - this condition prevents flashing of message, when async rule is evaluated
+	// async rules removes message when the async rule is evaluated
+	if (! hasAsyncRule || Nette.getEffectiveValue(elem) === '') {
+		// assumes the input is valid, therefore removing all messages
+		pdForms.removeMessages(elem);
+	}
+
 	// validate rules one-by-one to know which passed
 	for (var id = 0, len = rules.length; id < len; id++) {
 		var op = pdForms.formatOperation(rules[id].op);
@@ -90,15 +99,16 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 
 		// if async validator is used, validate & push into queue of not-yet resolved rules
 		if (async) {
-			var key = pdForms.asyncGetQueueKey(elem, op);
+			var key = pdForms.getAsyncQueueKey(elem, op);
 			pdForms.asyncQueue[key] = {
 				msg: rules[id].msg,
-				optional: rules[id].optional
+				optional: rules[id].optional,
+				onlyCheck: onlyCheck
 			};
 		}
 
 		var condition = !!rules[id].rules;
-		var valid = tmp_Nette_validateControl(elem, [rules[id]], ! condition);
+		var valid = tmp_Nette_validateControl(elem, [rules[id]], ! condition || onlyCheck);
 
 		// if rule is async, then do not write any message
 		if (! async) {
@@ -118,7 +128,7 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 		}
 	}
 
-	if (! onlyCheck) {
+	if (! onlyCheck && ! hasAsyncRule) {
 		// add pdforms-valid class name if the input is valid
 		pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE);
 	}
@@ -139,6 +149,31 @@ pdForms.formatOperation = function(op) {
 
 
 /**
+ * Checks if given rules contains any async rule
+ */
+pdForms.hasAsyncRule = function(rules) {
+	for (var id = 0, len = rules.length; id < len; id++) {
+		var op = pdForms.formatOperation(rules[id].op);
+
+		if (op in pdForms.asyncCallbacks) {
+			return true;
+		}
+
+		if (rules[id].rules) {
+			var conditionalAsync = pdForms.hasAsyncRule(rules[id].rules);
+
+			if (conditionalAsync) {
+				return true;
+			}
+		}
+	}
+
+	return false;
+};
+
+
+
+/**
  * Queue of asynchronous validation rules which has not been yet processed.
  */
 pdForms.asyncQueue = {};
@@ -147,7 +182,7 @@ pdForms.asyncQueue = {};
 /**
  * Get key to async queue for given element and operation
  */
-pdForms.asyncGetQueueKey = function(elem, op) {
+pdForms.getAsyncQueueKey = function(elem, op) {
 	return elem.getAttribute('id') + '--' + op;
 };
 
@@ -156,13 +191,13 @@ pdForms.asyncGetQueueKey = function(elem, op) {
  * Returns default settings for AJAX rules based on parameters. Either to be used directly as param for $.nette.ajax
  * call or as a default settings to be extended by custom properties.
  */
-pdForms.asyncRequestSettings = function(elem, op, arg, data) {
+pdForms.getAsyncRequestSettings = function(elem, op, arg, data) {
 	return {
 		url: arg.url,
 		data: (data ? data : null),
 		timeout: 5000,
-		spinner: '.ajax-validation-spinner',
-		off: ['snippets', 'history'],
+		spinner: '.ajax-validation-spinner--' + elem.id,
+		off: ['snippets', 'history', 'unique'],
 		beforeSend: function(jqXHR, settings) {
 			$(elem).addClass('inp-loading');
 		},
@@ -185,16 +220,20 @@ pdForms.asyncRequestSettings = function(elem, op, arg, data) {
  * after response is received.
  */
 pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
-	var key = pdForms.asyncGetQueueKey(elem, op);
+	var key = pdForms.getAsyncQueueKey(elem, op);
 
 	// found request in queue, otherwise do nothing
 	if (key in pdForms.asyncQueue) {
-		msg = pdForms.asyncQueue[key].msg;
-		optional = pdForms.asyncQueue[key].optional;
+		var msg = pdForms.asyncQueue[key].msg;
+		var optional = pdForms.asyncQueue[key].optional;
+		var onlyCheck = pdForms.asyncQueue[key].onlyCheck;
 		delete pdForms.asyncQueue[key];
 
+		// remove old messages
+		pdForms.removeMessages(elem);
+
 		// write validation result message
-		if (status in msg && msg[status]) {
+		if (status in msg && msg[status] && ! onlyCheck) {
 			switch (status) {
 				case 'invalid':
 					pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
@@ -329,7 +368,7 @@ pdForms.validators = {
 
 	'PdFormsRules_validTIN': function(elem, arg, val) {
 		$.nette.ajax(
-			pdForms.asyncRequestSettings(elem, 'PdFormsRules_validTIN', arg, { dic: val })
+			pdForms.getAsyncRequestSettings(elem, 'PdFormsRules_validTIN', arg, { dic: val })
 		);
 
 		return true;
@@ -390,8 +429,6 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 		}
 	}
 
-	// assumes the input is valid, therefore removing all messages
-	pdForms.removeMessages(elem);
 
 	ret = pdForms.validateControl(elem, rules, onlyCheck);
 	return ret;

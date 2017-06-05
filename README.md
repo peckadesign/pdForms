@@ -18,6 +18,10 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.2.3
+- vypnutí extension `unique` při AJAXové validaci - pokud je ve formuláři více polí s asynchroními pravidly, je potřeba více requestů v jednu chvíli
+- úprava vykreslování zpráv při kombinaci asynchronního pravidla a `onlyCheck === true` 
+
 ### v1.2.2
 - oprava validace podmíněných pravidel po přidání podpory `onlyCheck` do `pdForms.validateControl`
 - refactor přidávání validačních chyb (beze změny funčknosti)
