@@ -309,7 +309,7 @@ pdForms.addMessage = function(elem, message, type) {
 		return false;
 	}
 
-	var tagName = 'span';
+	var tagName = 'label';
 	var className = 'inp-' + type;
 	var globalMessage = $(elem).data('pdforms-messages--global') || false;
 
@@ -327,6 +327,10 @@ pdForms.addMessage = function(elem, message, type) {
 			className = (tagName === 'p') ? 'message message--' + type : className;
 
 			$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('name') + '">' + message + '</' + tagName + '>');
+
+			if (tagName === 'label') {
+				$msg.attr('for', $(elem).attr('id'));
+			}
 
 			$placeholder.data('pdforms-messages-prepend') ? $placeholder.prepend($msg) : $placeholder.append($msg);
 		}
