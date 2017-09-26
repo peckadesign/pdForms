@@ -281,25 +281,25 @@ pdForms.asyncCallbacks = {
 /**
  * Display message. Either input associated or (if appropriate selector not found) as "global" form message.
  * Message placeholding:
- * 	1. First we try to find elements parent .pdforms-messages-input
+ * 	1. First we try to find elements parent .pdforms-messages--input
  * 	2. If there is not any, then try to find closest p
- * 	3. If still no success, try to find .pdforms-messages-global
+ * 	3. If still no success, try to find .pdforms-messages--global
  *
- * If two or more inputs with validation rules are in same message placeholder (eg. <p> or .pdforms-messages-input), the
+ * If two or more inputs with validation rules are in same message placeholder (eg. <p> or .pdforms-messages--input), the
  * validation won't work as expected - class .error will be determined by last validated input in the placeholder and
- * messages may disappear unexpectedly :) In that case, you might be better with using .pdforms-messages-global or splitting
- * the <p> (.pdforms-messages-input) to two.
+ * messages may disappear unexpectedly :) In that case, you might be better with using .pdforms-messages--global or splitting
+ * the <p> (.pdforms-messages--input) to two.
  *
  * Using data-pdforms-messages-prepend we could prepend the message to placeholder found in previous steps.
  * Using data-pdforms-messages-tagname we could change the default span (p in case of global messages) element.
- * Using data-pdforms-messages-global on elem we could force the message to be displayed in global message placeholder.
+ * Using data-pdforms-messages--global on elem we could force the message to be displayed in global message placeholder.
  */
 pdForms.addMessage = function(elem, message, type) {
 	if (! type in pdForms.constants) {
 		type = pdForms.constants.ERROR_MESSAGE;
 	}
 
-	var $placeholder = $(elem).closest('.pdforms-messages-input, p');
+	var $placeholder = $(elem).closest('.pdforms-messages--input, p');
 
 	if ($placeholder.length) {
 		$placeholder.addClass('pdforms-' + type);
@@ -311,11 +311,11 @@ pdForms.addMessage = function(elem, message, type) {
 
 	var tagName = 'span';
 	var className = 'inp-' + type;
-	var globalMessage = $(elem).data('pdforms-messages-global') || false;
+	var globalMessage = $(elem).data('pdforms-messages--global') || false;
 
 	var $msg = '';
 
-	if ((globalMessage || $placeholder.length === 0) && ($placeholder = $(elem).closest('form').find('.pdforms-messages-global')).length) {
+	if ((globalMessage || $placeholder.length === 0) && ($placeholder = $(elem).closest('form').find('.pdforms-messages--global')).length) {
 		tagName = 'p';
 		globalMessage = true;
 	}
@@ -324,7 +324,7 @@ pdForms.addMessage = function(elem, message, type) {
 		// global message or non-error message or first error message
 		if (globalMessage || type !== pdForms.constants.ERROR_MESSAGE || (type === pdForms.constants.ERROR_MESSAGE && ! $placeholder.hasClass(type))) {
 			tagName = $placeholder.data('pdforms-messages-tagname') || tagName;
-			className = (tagName === 'p') ? 'message ' + type + '-message' : className;
+			className = (tagName === 'p') ? 'message message--' + type : className;
 
 			$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('name') + '">' + message + '</' + tagName + '>');
 
@@ -340,8 +340,8 @@ pdForms.addMessage = function(elem, message, type) {
 pdForms.removeMessages = function(elem) {
 	var name = $(elem).attr('name');
 
-	var $placeholder = $(elem).closest('.pdforms-messages-input, p');
-	var $global = $(elem).closest('form').find('.pdforms-messages-global');
+	var $placeholder = $(elem).closest('.pdforms-messages--input, p');
+	var $global = $(elem).closest('form').find('.pdforms-messages--global');
 
 	var $messages = $placeholder.add($global).find('.pdforms-message');
 
