@@ -299,7 +299,10 @@ pdForms.addMessage = function(elem, message, type) {
 		type = pdForms.constants.ERROR_MESSAGE;
 	}
 
-	var $placeholder = $(elem).closest('.pdforms-messages--input, p');
+	var $placeholder = $(elem).closest('.pdforms-messages--input');
+	if ($placeholder.length === 0) {
+		$placeholder = $(elem).closest('p');
+	}
 
 	if ($placeholder.length) {
 		$placeholder.addClass('pdforms-' + type);
@@ -344,7 +347,10 @@ pdForms.addMessage = function(elem, message, type) {
 pdForms.removeMessages = function(elem) {
 	var name = $(elem).attr('name');
 
-	var $placeholder = $(elem).closest('.pdforms-messages--input, p');
+	var $placeholder = $(elem).closest('.pdforms-messages--input');
+	if ($placeholder.length === 0) {
+		$placeholder = $(elem).closest('p');
+	}
 	var $global = $(elem).closest('form').find('.pdforms-messages--global');
 
 	var $messages = $placeholder.add($global).find('.pdforms-message');
