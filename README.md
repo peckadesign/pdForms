@@ -18,8 +18,13 @@ $ cat bower.json
 
 ## Changelog
 
-### v1.2.4 draft
-- snippety mohou být i uvnitř formuláře ([#5](https://github.com/peckadesign/pdForms/issues/5))
+### v1.3.1 draft
+- Snippety mohou být i uvnitř formuláře ([#5](https://github.com/peckadesign/pdForms/issues/5)).
+
+### v1.3.0
+- Oprava vyhledání placeholderu pro zprávu. Nyní odpovídá popisu, tj. `.pdforms-messages--input` se vyhledává s vyšší prioritou, než `p`.
+- Defaultní prvek pro zprávu u inputu je nově `label` s atributem `for` nastaveným na validovaný prvek.
+- Pojmenování class se částečně přibližuje BEM metodice, ve verzi 2 (kompatibilní s netteForms 2.4) je ambice to dotáhnout ještě lépe :)
 
 ### v1.2.3
 - vypnutí extension `unique` při AJAXové validaci - pokud je ve formuláři více polí s asynchroními pravidly, je potřeba více requestů v jednu chvíli
