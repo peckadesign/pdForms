@@ -395,6 +395,14 @@ Nette.addError = function(elem, message) {
 
 
 /**
+ * Add event to element using jQuery namespaces
+ */
+Nette.addEvent = function(element, on, callback) {
+	$(element).on(on + '.netteForms', callback);
+};
+
+
+/**
  * Validates single rule. If there is no validator in Nette.validators, then try to use pdForms.validators.
  */
 var tmp_Nette_validateRule = Nette.validateRule;
@@ -450,13 +458,16 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
  */
 var tmp_Nette_initForm = Nette.initForm;
 Nette.initForm = function (form) {
-	tmp_Nette_initForm(form);
-
 	var $form = $(form);
 	var $submit = $form.find(':submit');
 	var $inputs = $form.find('input:not(:button, :reset), textarea, select').filter('[data-nette-rules], [data-validation-group]'); // validate only fields with rules or fields in group
 
-	$inputs.on('focus change', function() {
+	$form.off('.netteForms');
+	$inputs.off('.pdForms .netteForms');
+
+	tmp_Nette_initForm(form);
+
+	$inputs.on('focus.pdForms change.pdForms', function() {
 		$(this).data('ever-focused', true);
 	});
 
@@ -464,10 +475,10 @@ Nette.initForm = function (form) {
 		$.proxy(pdForms.validateInput, this, e, $inputs)();
 	};
 
-	$inputs.filter(':not(:radio, :checkbox, select, [data-pdforms-validate-on])').on('blur', validateInputApplied);
-	$inputs.filter(':radio, :checkbox').on('change', validateInputApplied);
-	$inputs.filter('select').on('blur change', validateInputApplied);
+	$inputs.filter(':not(:radio, :checkbox, select, [data-pdforms-validate-on])').on('blur.pdForms', validateInputApplied);
+	$inputs.filter(':radio, :checkbox').on('change.pdForms', validateInputApplied);
+	$inputs.filter('select').on('blur.pdForms change.pdForms', validateInputApplied);
 	$inputs.filter('[data-pdforms-validate-on]').each(function() {
-		$(this).on($(this).data('pdforms-validate-on'), validateInputApplied);
+		$(this).on($(this).data('pdforms-validate-on') + '.pdForms', validateInputApplied);
 	});
 };

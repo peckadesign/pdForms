@@ -18,6 +18,9 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.2.4 draft
+- snippety mohou být i uvnitř formuláře ([#5](https://github.com/peckadesign/pdForms/issues/5))
+
 ### v1.2.3
 - vypnutí extension `unique` při AJAXové validaci - pokud je ve formuláři více polí s asynchroními pravidly, je potřeba více requestů v jednu chvíli
 - úprava vykreslování zpráv při kombinaci asynchronního pravidla a `onlyCheck === true` 
