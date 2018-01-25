@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.2.3
+ * @version 1.3.1
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -269,7 +269,9 @@ pdForms.asyncCallbacks = {
 				if (arg.inputs.hasOwnProperty(input) && payload.hasOwnProperty(input)) {
 					$input = $('#' + arg.inputs[input]);
 					if ($input.length && ! $input.val()) {
-						$input.val(payload[input]).triggerHandler('blur');
+						$input
+							.val(payload[input])
+							.trigger('change');
 					}
 				}
 			}

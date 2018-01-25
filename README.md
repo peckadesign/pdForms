@@ -18,8 +18,9 @@ $ cat bower.json
 
 ## Changelog
 
-### v1.3.1 draft
+### v1.3.1
 - Snippety mohou být i uvnitř formuláře ([#5](https://github.com/peckadesign/pdForms/issues/5)).
+- Oprava vyvolání události po vyplnění inputu při AJAXové validaci
 
 ### v1.3.0
 - Oprava vyhledání placeholderu pro zprávu. Nyní odpovídá popisu, tj. `.pdforms-messages--input` se vyhledává s vyšší prioritou, než `p`.
