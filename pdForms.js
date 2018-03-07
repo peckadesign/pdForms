@@ -388,6 +388,17 @@ pdForms.validators = {
 };
 
 
+/*
+ * Trochu špinavý trik? Kvůli snippetům uvnitř formuláře je potřeba navázat callbacky takovým způsobem, aby bylo možné
+ * je později odpojit, viz Nette.addEvent níže. Extension validation v nette.ajax ale pro netteForm verze 2.3 (nebo
+ * neuvedené) kontroluje onsubmit property na formuláři a tu volá pro zvalidování (viz původní Nette.addEvent metoda).
+ * Od verze 2.4 ale (v případě, že onsubmit není, jinak použije funkci v onsubmit) volá validaci formuláře napřímo
+ * pomocí Nette.validateForm. Protože podmínka je na undefined nebo "2.3", jakýkoli jiný řetězec, stačí uvést třeba toto
+ * a všechno funguje jak má. Snad. Don't panic.
+ */
+Nette.version = '2.3-pd';
+
+
 /**
  * Display error message.
  */
