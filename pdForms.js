@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.3.1
+ * @version 1.3.2
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -73,7 +73,15 @@ pdForms.validateInput = function(e, $inputs) {
 	$validate.each(function() {
 		if ($(this).data('ever-focused')) {
 			// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
-			Nette.validateControl(this);
+			var ret = Nette.validateControl(this);
+			var rules = Nette.parseJSON(this.getAttribute('data-nette-rules'));
+			var hasAsyncRule = pdForms.hasAsyncRule(rules);
+
+			// has to be here and not inside validateControl as it should add ok class only if whole input is valid (not only parts of condional rule etc.)
+			if (ret && ! hasAsyncRule) {
+				// add pdforms-valid class name if the input is valid
+				pdForms.addMessage(this, null, pdForms.constants.OK_MESSAGE);
+			}
 		}
 	});
 };
@@ -126,11 +134,6 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 				return valid;
 			}
 		}
-	}
-
-	if (! onlyCheck && ! hasAsyncRule) {
-		// add pdforms-valid class name if the input is valid
-		pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE);
 	}
 
 	return true;
@@ -384,6 +387,32 @@ pdForms.validators = {
 		);
 
 		return true;
+	},
+
+	'PdFormsRules_validICO': function(elem, arg, val) {
+		var a = 0;
+		var b = 0;
+
+		val = val.replace(/\s/g, '');
+
+		if  (val.length !== 8 || ! Nette.validators.regexp(elem, String(/\d+/), val)) {
+			return false;
+		}
+
+		for (var i = 0 ; i < 7; i++) {
+			a += parseInt(val[i] * (8 - i));
+		}
+
+		a = a % 11;
+		if (a === 0) {
+			b = 1;
+		} else if (a === 1) {
+			b = 0;
+		} else {
+			b = 11 - a;
+		}
+
+		return parseInt(val[7]) === b;
 	}
 };
 
@@ -460,9 +489,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 		}
 	}
 
-
-	ret = pdForms.validateControl(elem, rules, onlyCheck);
-	return ret;
+	return pdForms.validateControl(elem, rules, onlyCheck);
 };
 
 

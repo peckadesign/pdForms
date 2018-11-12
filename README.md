@@ -18,6 +18,11 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.3.2
+- Přidáno obecné pravidlo na formát CZ/SK IČ, které musí splňovat určité podmínky pro svůj ciferný součet. Pravidlo se očkává jako v namespace `Pd/Forms/Rules/` pod názvem `validICO`.
+- Oprava přidávání validní class v určitém případě, viz níže.
+  - Element má alespoň dvě pravidla z nichž jedno je složené (podmíněné). V případě, že podmíněné pravidlo projde, tak díky vnořenému volání `pdForms.validateControl` se přidala validní class. I když pak druhé pravidlo neprošlo a přidalo nevalidní class, zůstala ona validní class ze zanořeného pravidla. Řešením je přesun přidávání validní class o úroveň výše, tj. po validaci celého prvku.  
+
 ### v1.3.1
 - Snippety mohou být i uvnitř formuláře ([#5](https://github.com/peckadesign/pdForms/issues/5)).
 - Oprava vyvolání události po vyplnění inputu při AJAXové validaci
