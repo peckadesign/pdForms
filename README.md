@@ -18,6 +18,9 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.3.3
+- Oprava asynchronního callbacku `PdFormsRules_validTIN`. Po vyplnění polí nedošlo k jejich opětovné validaci.
+
 ### v1.3.2
 - Přidáno obecné pravidlo na formát CZ/SK IČ, které musí splňovat určité podmínky pro svůj ciferný součet. Pravidlo se očkává jako v namespace `Pd/Forms/Rules/` pod názvem `validICO`.
 - Oprava přidávání validní class v určitém případě, viz níže.

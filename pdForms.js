@@ -274,7 +274,8 @@ pdForms.asyncCallbacks = {
 					if ($input.length && ! $input.val()) {
 						$input
 							.val(payload[input])
-							.trigger('change');
+							.trigger('change')
+							.trigger('validate.pdForms');
 					}
 				}
 			}
@@ -515,10 +516,10 @@ Nette.initForm = function (form) {
 		$.proxy(pdForms.validateInput, this, e, $inputs)();
 	};
 
-	$inputs.filter(':not(:radio, :checkbox, select, [data-pdforms-validate-on])').on('blur.pdForms', validateInputApplied);
-	$inputs.filter(':radio, :checkbox').on('change.pdForms', validateInputApplied);
-	$inputs.filter('select').on('blur.pdForms change.pdForms', validateInputApplied);
+	$inputs.filter(':not(:radio, :checkbox, select, [data-pdforms-validate-on])').on('validate.pdForms blur.pdForms', validateInputApplied);
+	$inputs.filter(':radio, :checkbox').on('validate.pdForms change.pdForms', validateInputApplied);
+	$inputs.filter('select').on('validate.pdForms blur.pdForms change.pdForms', validateInputApplied);
 	$inputs.filter('[data-pdforms-validate-on]').each(function() {
-		$(this).on($(this).data('pdforms-validate-on') + '.pdForms', validateInputApplied);
+		$(this).on('validate.pdForms ' + $(this).data('pdforms-validate-on') + '.pdForms', validateInputApplied);
 	});
 };
