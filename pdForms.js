@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.3.2
+ * @version 1.3.4
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -205,7 +205,9 @@ pdForms.getAsyncRequestSettings = function(elem, op, arg, data) {
 			$(elem).addClass('inp-loading');
 		},
 		success: function(payload) {
-			pdForms.asyncEvaluate(elem, op, payload.valid ? 'valid' : 'invalid', payload, arg);
+			var status = payload.status || (payload.valid ? 'valid' : 'invalid');
+
+			pdForms.asyncEvaluate(elem, op, status, payload, arg);
 		},
 		error: function(jqXHR, status, error, settings) {
 			pdForms.asyncEvaluate(elem, op, error, undefined, arg);
@@ -242,12 +244,12 @@ pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
 					pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
 					break;
 
-				case 'timeout':
-					pdForms.addMessage(elem, msg[status], pdForms.constants.INFO_MESSAGE);
+				case 'valid':
+					pdForms.addMessage(elem, msg[status], pdForms.constants.OK_MESSAGE);
 					break;
 
-				case 'valid':
-					pdForms.addMessage(elem, msg.valid, pdForms.constants.OK_MESSAGE);
+				default:
+					pdForms.addMessage(elem, msg[status], payload.messageType ? payload.messageType : pdForms.constants.INFO_MESSAGE);
 					break;
 			}
 		}

@@ -18,6 +18,22 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.3.4
+- Zjednodušené přidávání vlastních zpráv krom `valid` a `invalid` u AJAXové validace. Nyní je možno vypsat libovolnou zprávu. Je potřeba v odpovědi ze serveru poslat v JSONu klíč `status` obsahující string. Ten se použije jako klíč do pole se zprávami nastavenými u pravidla v PHP (stejně, jako do teď fungoval `valid`, `invalid` a částečně `timeout`). Typ zprávy lze určit pomocí klíče `messageType` (libovolný string použitelný jako CSS class) v JSON odpovědi. Výchozí je `info`. Viz příklad odpovědi a vygenerované zprávy:
+
+```json
+{
+	"status": "unavailable",
+	"messageType": "nazev_class"
+}
+``` 
+
+```html
+<p class="message message--nazev_class pdforms-message">...</p>
+
+<label class="inp-nazev_class pdForms-message">...</label>
+```
+
 ### v1.3.3
 - Oprava asynchronního callbacku `PdFormsRules_validTIN`. Po vyplnění polí nedošlo k jejich opětovné validaci.
 
