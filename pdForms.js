@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.3.4
+ * @version 1.3.5
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -238,19 +238,25 @@ pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
 		pdForms.removeMessages(elem);
 
 		// write validation result message
-		if (status in msg && msg[status] && ! onlyCheck) {
-			switch (status) {
-				case 'invalid':
-					pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
-					break;
+		if (! onlyCheck) {
+			if (status in msg && msg[status]) {
+				switch (status) {
+					case 'invalid':
+						pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+						break;
 
-				case 'valid':
-					pdForms.addMessage(elem, msg[status], pdForms.constants.OK_MESSAGE);
-					break;
+					case 'valid':
+						pdForms.addMessage(elem, msg[status], pdForms.constants.OK_MESSAGE);
+						break;
 
-				default:
-					pdForms.addMessage(elem, msg[status], payload.messageType ? payload.messageType : pdForms.constants.INFO_MESSAGE);
-					break;
+					default:
+						pdForms.addMessage(elem, msg[status], payload && payload.messageType ? payload.messageType : pdForms.constants.INFO_MESSAGE);
+						break;
+				}
+			}
+			else if (status === 'valid') {
+				// add pdforms-valid class name if the input is valid and no message is specified
+				pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE);
 			}
 		}
 

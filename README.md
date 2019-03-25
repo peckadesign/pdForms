@@ -18,6 +18,10 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.3.5
+- Ošetření přidávání validačních zpráv v případě, že AJAXový request skončí chybou. V takovém případě je `payload === undefined`.
+- V případě AJAXové validace se přidá class `pdforms-valid` i v případě, že není vyplněná žádná zpráva. V případě chyby se class nepřidává bez vyplněné zprávy, protože to nedává smysl (uživatel by nevěděl, co je chybně). 
+
 ### v1.3.4
 - Zjednodušené přidávání vlastních zpráv krom `valid` a `invalid` u AJAXové validace. Nyní je možno vypsat libovolnou zprávu. Je potřeba v odpovědi ze serveru poslat v JSONu klíč `status` obsahující string. Ten se použije jako klíč do pole se zprávami nastavenými u pravidla v PHP (stejně, jako do teď fungoval `valid`, `invalid` a částečně `timeout`). Typ zprávy lze určit pomocí klíče `messageType` (libovolný string použitelný jako CSS class) v JSON odpovědi. Výchozí je `info`. Viz příklad odpovědi a vygenerované zprávy:
 
