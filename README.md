@@ -18,6 +18,9 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.3.6
+- Oprava mazání zpráv v případě, že input má asynchronní i klasická pravidla dohromady.
+
 ### v1.3.5
 - Ošetření přidávání validačních zpráv v případě, že AJAXový request skončí chybou. V takovém případě je `payload === undefined`.
 - V případě AJAXové validace se přidá class `pdforms-valid` i v případě, že není vyplněná žádná zpráva. V případě chyby se class nepřidává bez vyplněné zprávy, protože to nedává smysl (uživatel by nevěděl, co je chybně). 

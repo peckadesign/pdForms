@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.3.5
+ * @version 1.3.6
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -91,14 +91,10 @@ pdForms.validateInput = function(e, $inputs) {
  * Validates form element using optional nette-rules.
  */
 pdForms.validateControl = function(elem, rules, onlyCheck) {
-	var hasAsyncRule = pdForms.hasAsyncRule(rules);
-
-	// if non-async ruleset or empty element - this condition prevents flashing of message, when async rule is evaluated
-	// async rules removes message when the async rule is evaluated
-	if (! hasAsyncRule || Nette.getEffectiveValue(elem) === '') {
-		// assumes the input is valid, therefore removing all messages
-		pdForms.removeMessages(elem);
-	}
+	// assumes the input is valid, therefore removing all messages except those associated with async rules; this
+	// prevents flashing of message, when async rule is evaluated - async rules removes their messages when the async
+	// rule is evaluated
+	pdForms.removeMessages(elem, false);
 
 	// validate rules one-by-one to know which passed
 	for (var id = 0, len = rules.length; id < len; id++) {
@@ -235,28 +231,28 @@ pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
 		delete pdForms.asyncQueue[key];
 
 		// remove old messages
-		pdForms.removeMessages(elem);
+		pdForms.removeMessages(elem, true);
 
 		// write validation result message
 		if (! onlyCheck) {
 			if (status in msg && msg[status]) {
 				switch (status) {
 					case 'invalid':
-						pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+						pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE, true);
 						break;
 
 					case 'valid':
-						pdForms.addMessage(elem, msg[status], pdForms.constants.OK_MESSAGE);
+						pdForms.addMessage(elem, msg[status], pdForms.constants.OK_MESSAGE, true);
 						break;
 
 					default:
-						pdForms.addMessage(elem, msg[status], payload && payload.messageType ? payload.messageType : pdForms.constants.INFO_MESSAGE);
+						pdForms.addMessage(elem, msg[status], payload && payload.messageType ? payload.messageType : pdForms.constants.INFO_MESSAGE, true);
 						break;
 				}
 			}
 			else if (status === 'valid') {
 				// add pdforms-valid class name if the input is valid and no message is specified
-				pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE);
+				pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE, true);
 			}
 		}
 
@@ -308,7 +304,7 @@ pdForms.asyncCallbacks = {
  * Using data-pdforms-messages-tagname we could change the default span (p in case of global messages) element.
  * Using data-pdforms-messages--global on elem we could force the message to be displayed in global message placeholder.
  */
-pdForms.addMessage = function(elem, message, type) {
+pdForms.addMessage = function(elem, message, type, isAsyncRuleMessage) {
 	if (! type in pdForms.constants) {
 		type = pdForms.constants.ERROR_MESSAGE;
 	}
@@ -345,6 +341,10 @@ pdForms.addMessage = function(elem, message, type) {
 
 			$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('name') + '">' + message + '</' + tagName + '>');
 
+			if (isAsyncRuleMessage) {
+				$msg.attr('data-async-rule', true);
+			}
+
 			if (tagName === 'label') {
 				$msg.attr('for', $(elem).attr('id'));
 			}
@@ -356,25 +356,60 @@ pdForms.addMessage = function(elem, message, type) {
 
 
 /**
- * Removes all messages associated with input.
+ * Removes all messages associated with input. By default removes messages associated with async rules as well, but that
+ * can be changed not to.
  */
-pdForms.removeMessages = function(elem) {
+pdForms.removeMessages = function(elem, removeAsyncRulesMessages) {
 	var name = $(elem).attr('name');
 
+	// Default value should be true
+	if (typeof removeAsyncRulesMessages === 'undefined') {
+		removeAsyncRulesMessages = true;
+	}
+
+	// Find placeholders for input (input and global)
 	var $placeholder = $(elem).closest('.pdforms-messages--input');
 	if ($placeholder.length === 0) {
 		$placeholder = $(elem).closest('p');
 	}
-	var $global = $(elem).closest('form').find('.pdforms-messages--global');
+	var $globalPlaceholder = $(elem).closest('form').find('.pdforms-messages--global');
 
-	var $messages = $placeholder.add($global).find('.pdforms-message');
 
-	$placeholder.removeClass(String(pdForms.constants));
-	$messages
-		.filter(function() {
-			return $(this).data('elem') === name;
-		})
-		.remove();
+	// Find all messages associated with the elem
+	var $messages = {
+		'input': $placeholder.find('.pdforms-message'),
+		'global': $globalPlaceholder.find('.pdforms-message')
+	};
+	var $removeMessages = $([]);
+
+	// Filter all messages for deleting
+	for (var key in $messages) {
+		if ($messages.hasOwnProperty(key)) {
+
+			$messages[key] = $messages[key].filter(function() {
+				var isElemAssociatedMessage = $(this).data('elem') === name;
+				var isAsyncRuleMessage = $(this).data('async-rule');
+
+				// Remove async rules associated messages only if removeAsyncRulesMessages is true
+				var shouldRemove = isElemAssociatedMessage && (removeAsyncRulesMessages || (! removeAsyncRulesMessages && ! isAsyncRuleMessage));
+
+				if (shouldRemove) {
+					$removeMessages = $removeMessages.add(this);
+				}
+
+				return ! shouldRemove;
+			});
+
+		}
+	}
+
+	// If there is no message remaining in .pdforms-messages--input placeholder, then remove the placeholder class as well.
+	if ($messages.input.length === 0) {
+		$placeholder.removeClass(String(pdForms.constants));
+	}
+
+	// Remove the messages
+	$removeMessages.remove();
 };
 
 
