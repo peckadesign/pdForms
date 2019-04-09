@@ -18,6 +18,9 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.3.7
+- Oprava mazání zpráv v případě, že input má asynchronní i klasická pravidla dohromady. Za určitých okolností stále mohlo dojít k zobrazení dvou chyb zároveň, protože nedošlo ke smazání zprávy z asynchronního pravidla.
+
 ### v1.3.6
 - Oprava mazání zpráv v případě, že input má asynchronní i klasická pravidla dohromady.
 

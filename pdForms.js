@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.3.6
+ * @version 1.3.7
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -119,6 +119,14 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 			if (! onlyCheck) {
 				if (! valid) {
 					var msg = typeof rules[id].msg === 'object' ? rules[id].msg.invalid : rules[id].msg;
+
+					// if the rules[id] is sync and we have a new message, we need to remove previous messages
+					// (including async rules associated); checking for message presence ensures that conditional rules
+					// will show their message - their evaluating goes from deepest rule (where the message is defined),
+					// therefore condition is evaluated at last and must not remove the message
+					if (msg) {
+						pdForms.removeMessages(elem, true);
+					}
 					pdForms.addMessage(elem, msg, rules[id].optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
 				}
 				else if (typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
@@ -492,8 +500,8 @@ Nette.addEvent = function(element, on, callback) {
  * Validates single rule. If there is no validator in Nette.validators, then try to use pdForms.validators.
  */
 var tmp_Nette_validateRule = Nette.validateRule;
-Nette.validateRule = function(elem, op, arg) {
-	var ret = tmp_Nette_validateRule(elem, op.substring(0, pdForms.namespace.length) === pdForms.namespace ? op.substring(pdForms.namespace.length) : op, arg);
+Nette.validateRule = function(elem, op, arg, value) {
+	var ret = tmp_Nette_validateRule(elem, op.substring(0, pdForms.namespace.length) === pdForms.namespace ? op.substring(pdForms.namespace.length) : op, arg, value);
 
 	if (ret === null) {
 		op = pdForms.formatOperation(op);
