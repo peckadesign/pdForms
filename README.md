@@ -18,6 +18,10 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.3.8
+- Stisknutím klávesy ESC v průběhu AJAXové validace nedojde k jejímu zrušení.
+- Do globálního objektu `pdForms` přidána property `version` obsahující aktuální verzi.
+
 ### v1.3.7
 - Oprava mazání zpráv v případě, že input má asynchronní i klasická pravidla dohromady. Za určitých okolností stále mohlo dojít k zobrazení dvou chyb zároveň, protože nedošlo ke smazání zprávy z asynchronního pravidla.
 

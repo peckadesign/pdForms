@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.3.7
+ * @version 1.3.8
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -26,6 +26,12 @@
  */
 
 var pdForms = pdForms || {};
+
+
+/**
+ * Version
+ */
+pdForms.version = '1.3.8';
 
 
 /**
@@ -204,7 +210,7 @@ pdForms.getAsyncRequestSettings = function(elem, op, arg, data) {
 		data: (data ? data : null),
 		timeout: 5000,
 		spinner: '.ajax-validation-spinner--' + elem.id,
-		off: ['snippets', 'history', 'unique'],
+		off: ['snippets', 'history', 'unique', 'abort'],
 		beforeSend: function(jqXHR, settings) {
 			$(elem).addClass('inp-loading');
 		},
