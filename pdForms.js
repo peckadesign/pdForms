@@ -35,6 +35,17 @@ pdForms.version = '1.3.8';
 
 
 /**
+ * Nette methods which are later overridden
+ */
+pdForms.Nette = {
+	validateControl: Nette.validateControl,
+	validateRule:    Nette.validateRule,
+	toggleControl:   Nette.toggleControl,
+	initForm:        Nette.initForm
+};
+
+
+/**
  * Constants for messages. Used in CSS class names.
  */
 pdForms.constants = {
@@ -60,6 +71,23 @@ pdForms.namespace = 'Pd\\Forms\\Rules::';
 
 pdForms.isRuleOptional = function(rule) {
 	return Boolean(rule.arg) && typeof rule.arg === 'object' && 'optional' in rule.arg && rule.arg.optional;
+};
+
+
+/**
+ * Method converts rules from Pd format into Nette compatible format. It effectively means flattening rule.arg structure
+ * by removing rule.arg.optional and assigning rule.arg.data into rule.arg
+ * @param rules
+ */
+pdForms.normalizeRulesArg = function(rules) {
+	for (var j in rules) {
+		rules[j].optional = pdForms.isRuleOptional(rules[j]);
+		if ('arg' in rules[j] && typeof rules[j].arg === 'object' && 'data' in rules[j].arg) {
+			rules[j].arg = rules[j].arg.data;
+		}
+	}
+
+	return rules;
 };
 
 
@@ -118,7 +146,7 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 		}
 
 		var condition = !!rules[id].rules;
-		var valid = tmp_Nette_validateControl(elem, [rules[id]], ! condition || onlyCheck);
+		var valid = pdForms.Nette.validateControl(elem, [rules[id]], ! condition || onlyCheck);
 
 		// if rule is async, then do not write any message
 		if (! async) {
@@ -505,9 +533,8 @@ Nette.addEvent = function(element, on, callback) {
 /**
  * Validates single rule. If there is no validator in Nette.validators, then try to use pdForms.validators.
  */
-var tmp_Nette_validateRule = Nette.validateRule;
 Nette.validateRule = function(elem, op, arg, value) {
-	var ret = tmp_Nette_validateRule(elem, op.substring(0, pdForms.namespace.length) === pdForms.namespace ? op.substring(pdForms.namespace.length) : op, arg, value);
+	var ret = pdForms.Nette.validateRule(elem, op.substring(0, pdForms.namespace.length) === pdForms.namespace ? op.substring(pdForms.namespace.length) : op, arg, value);
 
 	if (ret === null) {
 		op = pdForms.formatOperation(op);
@@ -528,7 +555,6 @@ Nette.validateRule = function(elem, op, arg, value) {
 /**
  *
  */
-var tmp_Nette_validateControl = Nette.validateControl;
 Nette.validateControl = function(elem, rules, onlyCheck) {
 
 	if (!elem.nodeName) { // RadioNodeList
@@ -537,24 +563,31 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 	rules = rules || Nette.parseJSON(elem.getAttribute('data-nette-rules'));
 
 	// no rules -> skip element validation
-	if (rules.length === 0)
+	if (rules.length === 0) {
 		return true;
-
-	for (var j in rules) {
-		rules[j].optional = pdForms.isRuleOptional(rules[j]);
-		if ('arg' in rules[j] && typeof rules[j].arg === 'object' && 'data' in rules[j].arg) {
-			rules[j].arg = rules[j].arg.data;
-		}
 	}
+
+	// convert arg property in rules into Nette compatible format
+	rules = pdForms.normalizeRulesArg(rules);
 
 	return pdForms.validateControl(elem, rules, onlyCheck);
 };
 
 
 /**
+ *
+ */
+Nette.toggleControl = function(elem, rules, success, firsttime, value) {
+	// convert arg property in rules into Nette compatible format
+	rules = pdForms.normalizeRulesArg(rules);
+
+	pdForms.Nette.toggleControl(elem, rules, success, firsttime, value);
+};
+
+
+/**
  * Setup handlers.
  */
-var tmp_Nette_initForm = Nette.initForm;
 Nette.initForm = function (form) {
 	var $form = $(form);
 	var $submit = $form.find(':submit');
@@ -563,7 +596,7 @@ Nette.initForm = function (form) {
 	$form.off('.netteForms');
 	$inputs.off('.pdForms .netteForms');
 
-	tmp_Nette_initForm(form);
+	pdForms.Nette.initForm(form);
 
 	$inputs.on('focus.pdForms change.pdForms', function() {
 		$(this).data('ever-focused', true);

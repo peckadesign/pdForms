@@ -19,8 +19,10 @@ $ cat bower.json
 ## Changelog
 
 ### v1.3.8
-- Stisknutím klávesy ESC v průběhu AJAXové validace nedojde k jejímu zrušení.
+- Stisknutím klávesy ESC v průběhu AJAXové validace nedojde k jejímu zrušení ([#10](https://github.com/peckadesign/pdForms/issues/10)).
 - Do globálního objektu `pdForms` přidána property `version` obsahující aktuální verzi.
+- Metoda `toggleControl` při validaci AJAXových pravidel použije správnou URL ([#8](https://github.com/peckadesign/pdForms/issues/8)).
+- Drobný refactor přetěžování `Nette` metod a ukládání referencí na původní metody. 
 
 ### v1.3.7
 - Oprava mazání zpráv v případě, že input má asynchronní i klasická pravidla dohromady. Za určitých okolností stále mohlo dojít k zobrazení dvou chyb zároveň, protože nedošlo ke smazání zprávy z asynchronního pravidla.
