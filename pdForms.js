@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.3.8
+ * @version 1.3.9
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -127,8 +127,10 @@ pdForms.validateInput = function(e, $inputs) {
 pdForms.validateControl = function(elem, rules, onlyCheck) {
 	// assumes the input is valid, therefore removing all messages except those associated with async rules; this
 	// prevents flashing of message, when async rule is evaluated - async rules removes their messages when the async
-	// rule is evaluated
-	pdForms.removeMessages(elem, false);
+	// rule is evaluated; when onlyCheck is true, we dont' want to modify DOM at all
+	if (! onlyCheck) {
+		pdForms.removeMessages(elem, false);
+	}
 
 	// validate rules one-by-one to know which passed
 	for (var id = 0, len = rules.length; id < len; id++) {
@@ -272,11 +274,11 @@ pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
 		var onlyCheck = pdForms.asyncQueue[key].onlyCheck;
 		delete pdForms.asyncQueue[key];
 
-		// remove old messages
-		pdForms.removeMessages(elem, true);
-
 		// write validation result message
 		if (! onlyCheck) {
+			// remove old messages, only when onlyCheck is false
+			pdForms.removeMessages(elem, true);
+
 			if (status in msg && msg[status]) {
 				switch (status) {
 					case 'invalid':
@@ -567,7 +569,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 		return true;
 	}
 
-	// convert arg property in rules into Nette compatible format
+	// convert arg property in rules into Nette format
 	rules = pdForms.normalizeRulesArg(rules);
 
 	return pdForms.validateControl(elem, rules, onlyCheck);
@@ -578,7 +580,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
  *
  */
 Nette.toggleControl = function(elem, rules, success, firsttime, value) {
-	// convert arg property in rules into Nette compatible format
+	// convert arg property in rules into Nette format
 	rules = pdForms.normalizeRulesArg(rules);
 
 	pdForms.Nette.toggleControl(elem, rules, success, firsttime, value);

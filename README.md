@@ -18,6 +18,9 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.3.9
+- K mazání zpráv nedochází v případě, že validace inputu byla zavolána s `onlyCheck === true`. V tu chvíli neovlivňujeme žádným způsobem DOM.
+
 ### v1.3.8
 - Stisknutím klávesy ESC v průběhu AJAXové validace nedojde k jejímu zrušení ([#10](https://github.com/peckadesign/pdForms/issues/10)).
 - Do globálního objektu `pdForms` přidána property `version` obsahující aktuální verzi.
