@@ -143,12 +143,12 @@
 	 */
 	pdForms.liveValidation = function(e) {
 		var validate = [e.target];
-		var groupName = e.target.getAttribute('data-validation-group');
+		var groupName = e.target.getAttribute('data-pdforms-validation-group');
 
 		if (groupName) {
 			var elems = e.target.form.elements;
 			for (var i = 0; i < elems.length; i++) {
-				if (elems[i] !== e.target && elems[i].getAttribute('data-validation-group') === groupName) {
+				if (elems[i] !== e.target && elems[i].getAttribute('data-pdforms-validation-group') === groupName) {
 					validate.push(elems[i]);
 				}
 			}
