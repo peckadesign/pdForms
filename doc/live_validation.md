@@ -14,6 +14,8 @@ var input = document.getElementById('muj_input');
 input.dispatchEvent(new Event('validate'));
 ```
 
+Pro podporu v IE9+ je potřeba přidat ještě soubor `<script src="pdForms.polyfills.js"></script>`
+
 ### Vlastní událost pro spuštění validace 
 Pokud chcete validovat formulářové pole při libovolné jiné události (`keyup`, `focusout`, vlastní událost, ...), stačí na formulářový prvek přidat data atribut `data-pdforms-validate-on` obsahující název události. Validační callback se poté naváže i na tuto událost. 
 ```html

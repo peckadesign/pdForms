@@ -48,12 +48,6 @@
 	pdForms.version = '2.0.0';
 
 
-	if (! Element.prototype.matches) {
-		Element.prototype.matches =
-			Element.prototype.msMatchesSelector ||
-			Element.prototype.webkitMatchesSelector;
-	}
-
 	/**
 	 * Nette methods which are later overridden
 	 */
@@ -286,36 +280,6 @@
 
 
 	/**
-	 * Returns default settings for AJAX rules based on parameters. Either to be used directly as param for $.nette.ajax
-	 * call or as a default settings to be extended by custom properties.
-	 */
-	pdForms.getAjaxRequestSettings = function(elem, op, arg, data) {
-		return {
-			url: arg.ajaxUrl,
-			data: (data ? data : null),
-			timeout: 5000,
-			spinner: '.pdforms-ajax-spinner--' + elem.id,
-			off: ['snippets', 'history', 'unique', 'abort'],
-			beforeSend: function(jqXHR, settings) {
-				$(elem).addClass('inp-loading');
-			},
-			success: function(payload) {
-				var status = payload.status || (payload.valid ? 'valid' : 'invalid');
-
-				pdForms.ajaxEvaluate(elem, op, status, payload, arg);
-			},
-			error: function(jqXHR, status, error, settings) {
-				pdForms.ajaxEvaluate(elem, op, error, undefined, arg);
-			},
-			complete: function(jqXHR, status, settings) {
-				$(elem).removeClass('inp-loading');
-			}
-		};
-	};
-
-
-
-	/**
 	 * For given element and operation write validation result message and remove from queue; called by AJAX validator
 	 * after response is received.
 	 */
@@ -334,28 +298,28 @@
 				// remove old messages, only when onlyCheck is false
 				pdForms.removeMessages(elem, true);
 
-			if (status in msg && msg[status]) {
-				var msgType = pdForms.constants.ERROR_MESSAGE;
+				if (status in msg && msg[status]) {
+					var msgType = pdForms.constants.ERROR_MESSAGE;
 
-				if (typeof payload === 'object' && payload.messageType) {
-					msgType = payload.messageType;
-				} else if (status === 'invalid' && ! isOptional) {
-					msgType = pdForms.constants.ERROR_MESSAGE;
-				} else if (status === 'valid') {
-					msgType = pdForms.constants.OK_MESSAGE;
+					if (typeof payload === 'object' && payload.messageType) {
+						msgType = payload.messageType;
+					} else if (status === 'invalid' && ! isOptional) {
+						msgType = pdForms.constants.ERROR_MESSAGE;
+					} else if (status === 'valid') {
+						msgType = pdForms.constants.OK_MESSAGE;
+					}
+
+					if (isOptional && msgType === pdForms.constants.ERROR_MESSAGE) {
+						msgType = pdForms.constants.INFO_MESSAGE;
+					}
+
+					pdForms.addMessage(elem, msg[status], msgType, true);
 				}
-
-				if (isOptional && msgType === pdForms.constants.ERROR_MESSAGE) {
-					msgType = pdForms.constants.INFO_MESSAGE;
+				else if (status === 'valid') {
+					// add pdforms-valid class name if the input is valid and no message is specified
+					pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE, true);
 				}
-
-				pdForms.addMessage(elem, msg[status], msgType, true);
 			}
-			else if (status === 'valid') {
-				// add pdforms-valid class name if the input is valid and no message is specified
-				pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE, true);
-			}
-		}
 
 			// fill in input fields recieved in payload
 			pdForms.ajaxFillDependentInputs(elem, payload, arg);
@@ -367,7 +331,9 @@
 		}
 	};
 
+
 	pdForms.ajaxCallbacks = pdForms.ajaxCallbacks || {};
+
 
 	/**
 	 * Fill in values into inputs defined in arg.inputs if the value is defined in payload.
@@ -388,10 +354,11 @@
 				var input = document.getElementById(inputId);
 
 				if (input && ! input.value) {
-					$(input)
-						.val(payload.dependentInputs[inputId])
-						.trigger('change')
-						.trigger('validate.pdForms');
+					var ev = document.createEvent('Event');
+					ev.initEvent('change', true, true);
+
+					input.value = payload[inputId];
+					input.dispatchEvent(ev);
 				}
 			}
 		}
@@ -549,20 +516,6 @@
 
 	Nette.validators.PdFormsRules_phone = function(elem, arg, val) {
 		return Nette.validators.regexp(elem, String(/^\+[0-9]{3} ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/), val);
-	};
-
-	Nette.validators.PdFormsRules_ajax = function(elem, arg, val, value, callback) {
-	if (typeof callback === 'undefined') {
-		callback = 'PdFormsRules_ajax';
-	}
-
-		var parameters = pdForms.getAjaxUrlParameters(elem, arg, val, value, callback);
-
-		$.nette.ajax(
-			pdForms.getAjaxRequestSettings(elem, callback, arg, parameters)
-		);
-
-		return true;
 	};
 
 	Nette.validators.PdFormsRules_czechCompanyIdentifier = function(elem, arg, val) {
