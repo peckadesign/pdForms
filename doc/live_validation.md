@@ -1,10 +1,12 @@
 ## Live validace
 
-Pro použití na webu stačí nalinkovat `netteForms.js` a `pdForms.js` a vypnout automatickou inicializaci nette forms.
+Pro použití na webu stačí nalinkovat `netteForms.js`, jednotlivé validátory a `pdForms.js` a vypnout automatickou inicializaci nette forms.
 
 ```html
 <script>var Nette = { noInit: true };</script>
 <script src="netteForms.js"></script>
+<script src="validators/pdForms.validator.phone.js"></script>
+<script src="validators/..."></script>
 <script src="pdForms.js"></script>
 ```
 
