@@ -64,18 +64,7 @@
 	pdForms.constants = {
 		ERROR_MESSAGE: 'error',
 		INFO_MESSAGE: 'info',
-		OK_MESSAGE: 'valid',
-
-		// returns searialized class names, each one prefixed with "pdforms-" string
-		toString: function() {
-			var s = '';
-
-			for (var i in this) {
-				s += (typeof this[i] !== 'function') ? ' pdforms-' + String(this[i]) : '';
-			}
-
-			return s.slice(1);
-		}
+		OK_MESSAGE: 'valid'
 	};
 
 
@@ -299,7 +288,7 @@
 				pdForms.removeMessages(elem, true);
 
 				if (status in msg && msg[status]) {
-					var msgType = pdForms.constants.ERROR_MESSAGE;
+					var msgType = pdForms.constants.INFO_MESSAGE;
 
 					if (typeof payload === 'object' && payload.messageType) {
 						msgType = payload.messageType;
@@ -366,6 +355,34 @@
 
 
 	/**
+	 * Find the placeholder element for a given input element.
+	 */
+	pdForms.getMessagePlaceholder = function(elem) {
+		var placeholder = null;
+		var isGlobal = elem.getAttribute('data-pdforms-messages-global') !== null;
+
+		if (isGlobal) {
+			placeholder = elem.form.querySelector('.pdforms-messages--global');
+
+		} else {
+			placeholder =
+				elem.closest('.pdforms-messages--input') ||
+				elem.closest('p');
+
+			if (! placeholder) {
+				placeholder = elem.form.querySelector('.pdforms-messages--global');
+				isGlobal = true;
+			}
+		}
+
+		return {
+			elem: placeholder,
+			isGlobal: isGlobal
+		};
+	};
+
+
+	/**
 	 * Display message. Either input associated or (if appropriate selector not found) as "global" form message.
 	 * Message placeholding:
 	 * 	1. First we try to find elements parent .pdforms-messages--input
@@ -379,21 +396,22 @@
 	 *
 	 * Using data-pdforms-messages-prepend we could prepend the message to placeholder found in previous steps.
 	 * Using data-pdforms-messages-tagname we could change the default span (p in case of global messages) element.
-	 * Using data-pdforms-messages--global on elem we could force the message to be displayed in global message placeholder.
+	 * Using data-pdforms-messages-global on elem we could force the message to be displayed in global message placeholder.
 	 */
 	pdForms.addMessage = function(elem, message, type, isAjaxRuleMessage) {
+		var placeholder = pdForms.getMessagePlaceholder(elem);
+
+		if (! placeholder.elem) {
+			return false;
+		}
+
 		if (! type in pdForms.constants) {
 			type = pdForms.constants.ERROR_MESSAGE;
 		}
 
-		var $placeholder = $(elem).closest('.pdforms-messages--input');
-		if ($placeholder.length === 0) {
-			$placeholder = $(elem).closest('p');
-		}
-
-		if ($placeholder.length) {
-			$placeholder.addClass('pdforms-' + type);
-		}
+		placeholder.elem.classList ?
+			placeholder.elem.classList.add('pdforms-' + type) :
+			placeholder.elem.className += ' pdforms-' + type;
 
 		if (! message) {
 			return false;
@@ -401,33 +419,32 @@
 
 		var tagName = 'label';
 		var className = 'inp-' + type;
-		var globalMessage = $(elem).data('pdforms-messages--global') || false;
 
-		var $msg = '';
-
-		if ((globalMessage || $placeholder.length === 0) && ($placeholder = $(elem).closest('form').find('.pdforms-messages--global')).length) {
+		if (placeholder.isGlobal) {
 			tagName = 'p';
-			globalMessage = true;
 		}
 
-		if ($placeholder.length) {
-			// global message or non-error message or first error message
-			if (globalMessage || type !== pdForms.constants.ERROR_MESSAGE || (type === pdForms.constants.ERROR_MESSAGE && ! $placeholder.hasClass(type))) {
-				tagName = $placeholder.data('pdforms-messages-tagname') || tagName;
-				className = (tagName === 'p') ? 'message message--' + type : className;
+		// global message or non-error message or first error message
+		if (placeholder.isGlobal || type !== pdForms.constants.ERROR_MESSAGE || (type === pdForms.constants.ERROR_MESSAGE && ((' ' + placeholder.elem.className + ' ').indexOf(' ' + type + ' ') === -1))) {
+			tagName = placeholder.elem.getAttribute('data-pdforms-messages-tagname') || tagName;
+			className = (tagName === 'p') ? 'message message--' + type : className;
 
-				$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('name') + '">' + message + '</' + tagName + '>');
+			var msg = document.createElement(tagName);
+			msg.textContent = message;
+			msg.setAttribute('class', className + ' pdforms-message');
+			msg.setAttribute('data-elem', elem.name);
 
-				if (isAjaxRuleMessage) {
-					$msg.attr('data-ajax-rule', true);
-				}
-
-				if (tagName === 'label') {
-					$msg.attr('for', $(elem).attr('id'));
-				}
-
-				$placeholder.data('pdforms-messages-prepend') ? $placeholder.prepend($msg) : $placeholder.append($msg);
+			if (isAjaxRuleMessage) {
+				msg.setAttribute('data-ajax-rule', true);
 			}
+
+			if (tagName === 'label') {
+				msg.setAttribute('for', elem.id);
+			}
+
+			placeholder.elem.getAttribute('data-pdforms-messages-prepend') ?
+				placeholder.elem.prepend(msg) :
+				placeholder.elem.append(msg);
 		}
 	};
 
@@ -437,7 +454,7 @@
 	 * can be changed not to.
 	 */
 	pdForms.removeMessages = function(elem, removeAjaxRulesMessages) {
-		var name = $(elem).attr('name');
+		var name = elem.name;
 
 		// Default value should be true
 		if (typeof removeAjaxRulesMessages === 'undefined') {
@@ -445,33 +462,32 @@
 		}
 
 		// Find placeholders for input (input and global)
-		var $placeholder = $(elem).closest('.pdforms-messages--input');
-		if ($placeholder.length === 0) {
-			$placeholder = $(elem).closest('p');
-		}
-		var $globalPlaceholder = $(elem).closest('form').find('.pdforms-messages--global');
+		var placeholder =
+			elem.closest('.pdforms-messages--input') ||
+			elem.closest('p');
 
+		var globalPlaceholder = elem.form.querySelector('.pdforms-messages--global');
 
 		// Find all messages associated with the elem
-		var $messages = {
-			'input': $placeholder.find('.pdforms-message'),
-			'global': $globalPlaceholder.find('.pdforms-message')
+		var messages = {
+			'input':  placeholder       ? Array.prototype.slice.call(placeholder.querySelectorAll('.pdforms-message'))       : [],
+			'global': globalPlaceholder ? Array.prototype.slice.call(globalPlaceholder.querySelectorAll('.pdforms-message')) : []
 		};
-		var $removeMessages = $([]);
+		var removeMessages = [];
 
 		// Filter all messages for deleting
-		for (var key in $messages) {
-			if ($messages.hasOwnProperty(key)) {
+		for (var key in messages) {
+			if (messages.hasOwnProperty(key)) {
 
-				$messages[key] = $messages[key].filter(function() {
-					var isElemAssociatedMessage = $(this).data('elem') === name;
-					var isAjaxRuleMessage = $(this).data('ajax-rule');
+				messages[key] = messages[key].filter(function(elem) {
+					var isElemAssociatedMessage = elem.getAttribute('data-elem') === name;
+					var isAjaxRuleMessage = elem.getAttribute('data-ajax-rule');
 
 					// Remove ajax rules associated messages only if removeAjaxRulesMessages is true
 					var shouldRemove = isElemAssociatedMessage && (removeAjaxRulesMessages || (! removeAjaxRulesMessages && ! isAjaxRuleMessage));
 
 					if (shouldRemove) {
-						$removeMessages = $removeMessages.add(this);
+						removeMessages.push(elem);
 					}
 
 					return ! shouldRemove;
@@ -481,12 +497,19 @@
 		}
 
 		// If there is no message remaining in .pdforms-messages--input placeholder, then remove the placeholder class as well.
-		if ($messages.input.length === 0) {
-			$placeholder.removeClass(String(pdForms.constants));
+		if (placeholder && messages.input.length === 0) {
+			for (var i in pdForms.constants) {
+				var className = 'pdforms-' + pdForms.constants[i];
+				placeholder.classList ?
+					placeholder.classList.remove(className) :
+					placeholder.className = (' ' + placeholder.className + ' ').replace(' ' + className + ' ', ' ').trim();
+			}
 		}
 
 		// Remove the messages
-		$removeMessages.remove();
+		removeMessages.forEach(function (elem) {
+			elem.remove();
+		});
 	};
 
 
@@ -631,18 +654,27 @@
 	Nette.initForm = function (form) {
 		pdForms.Nette.initForm(form);
 
-		addDelegatedEventListener(form, 'focusin change', 'select, textarea, input:not([type="submit"]):not([type="reset"])', function(e) {
-			e.target.setAttribute('data-pdforms-ever-focused', true);
+		// Setting flag that input has been focused, so we won't notify about errors in fields user has not yet filled
+		addDelegatedEventListener(form, 'focusout change', 'select, textarea, input:not([type="submit"]):not([type="reset"])', function(e) {
+			var everFocused = e.target.getAttribute('data-pdforms-ever-focused');
+
+			if (! everFocused) {
+				e.target.setAttribute('data-pdforms-ever-focused', true);
+
+				// When tabbing through fields, we want to validate them once even though no change event happend
+				// If change event happened, then ! everFocused would by false in focusout callback
+				if (e.type === 'focusout') {
+					pdForms.liveValidation.call(form, e);
+				}
+			}
 		});
 
-		addDelegatedEventListener(form, 'focusout', 'select, textarea, input:not([type="radio"]):not([type="checkbox"])', pdForms.liveValidation);
-		addDelegatedEventListener(form, 'change', 'input[type="radio"], input[type="checkbox"], select', pdForms.liveValidation);
-		addDelegatedEventListener(form, 'validate', 'select, textarea, input:not([type="submit"]):not([type="reset"])', pdForms.liveValidation);
+		addDelegatedEventListener(form, 'validate change',   'select, textarea, input:not([type="submit"]):not([type="reset"])', pdForms.liveValidation);
 
-
-		pdformsValidateOnArr = Array.prototype.slice.call(form.elements);
-		pdformsValidateOnArr = pdformsValidateOnArr.filter(function(element) {
-			return element.matches('[data-pdforms-validate-on]');
+		// Validation on custom events
+		var pdformsValidateOnArr = Array.prototype.slice.call(form.elements);
+		pdformsValidateOnArr = pdformsValidateOnArr.filter(function(elem) {
+			return elem.matches('[data-pdforms-validate-on]');
 		});
 
 		for (var i = 0; i < pdformsValidateOnArr.length; i++) {
