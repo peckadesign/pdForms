@@ -18,6 +18,15 @@ $ cat bower.json
 
 ## Changelog
 
+### v1.4.0
+- Nepovinná pravidla (měkká validace) a AJAXová pravidla lze nyní na back-endu připojovat přes `addRule`. 
+- **BC breaky:**
+    - Všechny validátory jsou nyní v `Nette.validators`, validátory z `pdForms.validators` byly přesunuty tamtéž.
+    - Přejmenování objektu pro callbacky, nově je to `pdForms.ajaxCallbacks`, místo původního ~~`pdForms.asyncCallbacks`~~.
+    - Není nutné vytvářet prázdný callback pro identifikaci AJAXového pravidla. To je nyní rozpoznáno díky příznaku z back-endu.  
+    - Přejmenována metoda na ověření, zda pravidla obsahují ajaxové pravidla. Nově `pdForms.hasAjaxRule` místo ~~`pdForms.hasAsyncRule`~~.
+
+
 ### v1.3.9
 - K mazání zpráv nedochází v případě, že validace inputu byla zavolána s `onlyCheck === true`. V tu chvíli neovlivňujeme žádným způsobem DOM.
 
