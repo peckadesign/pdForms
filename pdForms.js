@@ -68,26 +68,25 @@ pdForms.constants = {
 pdForms.namespace = 'Pd\\Forms\\Rules::';
 
 
-pdForms.isRuleOptional = function(rule) {
+pdForms.isOptionalRule = function(rule) {
 	return typeof rule.arg === 'object' && rule.arg.optional;
 };
 
 
-pdForms.isRuleAjax = function(rule) {
-	return typeof rule.arg === 'object' && rule.arg.ajax;
+pdForms.isAjaxRule = function(rule) {
+	return typeof rule.arg === 'object' && 'ajaxUrl' in rule.arg;
 };
 
 
 /**
- * Method converts rules from Pd format into Nette compatible format. It effectively means flattening rule.arg structure
- * by removing rule.arg.optional, rule.arg.ajax, rule.arg.msg and assigning rule.arg.data into rule.arg
- * @param rules
+ * Method converts rules from Pd format into Nette compatible format. There are two fags set - isOptional and isAjax -
+ * and rule.msg is converted into an object.
  */
-pdForms.normalizeRulesArg = function(rules) {
+pdForms.normalizeRules = function(rules) {
 	for (var j in rules) {
 		var rule = rules[j];
-		rule.optional = pdForms.isRuleOptional(rule);
-		rule.ajax = pdForms.isRuleAjax(rule);
+		rule.isOptional = pdForms.isOptionalRule(rule);
+		rule.isAjax = pdForms.isAjaxRule(rule);
 
 		if (typeof rule.msg === 'undefined') {
 			rule.msg = {};
@@ -99,10 +98,6 @@ pdForms.normalizeRulesArg = function(rules) {
 			for (var i in rule.arg.msg) {
 				rule.msg[i] = rule.arg.msg[i];
 			}
-		}
-
-		if (typeof rule.arg === 'object' && 'data' in rule.arg) {
-			rule.arg = rule.arg.data;
 		}
 	}
 
@@ -157,11 +152,11 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 		var op = pdForms.formatOperation(rule.op);
 
 		// if ajax validator is used, validate & push into queue of not-yet resolved rules
-		if (rule.ajax) {
+		if (rule.isAjax) {
 			var key = pdForms.getAjaxQueueKey(elem, op);
 			pdForms.ajaxQueue[key] = {
 				msg: rule.msg,
-				optional: rule.optional,
+				optional: rule.isOptional,
 				onlyCheck: onlyCheck
 			};
 		}
@@ -170,7 +165,7 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 		var valid = pdForms.Nette.validateControl(elem, [rule], ! condition || onlyCheck);
 
 		// if rule is ajax, then do not write any message
-		if (! rule.ajax) {
+		if (! rule.isAjax) {
 			if (! onlyCheck) {
 				if (! valid) {
 					// if the rule is sync and we have a new message, we need to remove previous messages
@@ -180,14 +175,14 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 					if (rule.msg.invalid) {
 						pdForms.removeMessages(elem, true);
 					}
-					pdForms.addMessage(elem, rule.msg.invalid, rule.optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+					pdForms.addMessage(elem, rule.msg.invalid, rule.isOptional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
 				}
 				else if (rule.msg.valid) {
 					pdForms.addMessage(elem, rule.msg.valid, pdForms.constants.OK_MESSAGE);
 				}
 			}
 
-			if (! valid && ! rule.optional) {
+			if (! valid && ! rule.isOptional) {
 				return valid;
 			}
 		}
@@ -213,7 +208,7 @@ pdForms.formatOperation = function(op) {
  */
 pdForms.hasAjaxRule = function(rules) {
 	for (var id = 0, len = rules.length; id < len; id++) {
-		if (rules[id].ajax || (rules[id].rules && pdForms.hasAjaxRule(rules[id].rules))) {
+		if (rules[id].isAjax || (rules[id].rules && pdForms.hasAjaxRule(rules[id].rules))) {
 			return true;
 		}
 	}
@@ -243,7 +238,7 @@ pdForms.getAjaxQueueKey = function(elem, op) {
  */
 pdForms.getAjaxRequestSettings = function(elem, op, arg, data) {
 	return {
-		url: arg.url,
+		url: arg.ajaxUrl,
 		data: (data ? data : null),
 		timeout: 5000,
 		spinner: '.ajax-validation-spinner--' + elem.id,
@@ -277,7 +272,7 @@ pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
 	// found request in queue, otherwise do nothing
 	if (key in pdForms.ajaxQueue) {
 		var msg = pdForms.ajaxQueue[key].msg;
-		var optional = pdForms.ajaxQueue[key].optional;
+		var isOptional = pdForms.ajaxQueue[key].isOptional;
 		var onlyCheck = pdForms.ajaxQueue[key].onlyCheck;
 		delete pdForms.ajaxQueue[key];
 
@@ -289,7 +284,7 @@ pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
 			if (status in msg && msg[status]) {
 				switch (status) {
 					case 'invalid':
-						pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE, true);
+						pdForms.addMessage(elem, msg[status], isOptional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE, true);
 						break;
 
 					case 'valid':
@@ -553,7 +548,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 	}
 
 	// convert arg property in rules into Nette format
-	rules = pdForms.normalizeRulesArg(rules);
+	rules = pdForms.normalizeRules(rules);
 
 	return pdForms.validateControl(elem, rules, onlyCheck);
 };
@@ -564,7 +559,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
  */
 Nette.toggleControl = function(elem, rules, success, firsttime, value) {
 	// convert arg property in rules into Nette format
-	rules = pdForms.normalizeRulesArg(rules);
+	rules = pdForms.normalizeRules(rules);
 
 	pdForms.Nette.toggleControl(elem, rules, success, firsttime, value);
 };
