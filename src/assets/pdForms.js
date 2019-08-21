@@ -405,7 +405,7 @@
 			return false;
 		}
 
-		if (! type in pdForms.constants) {
+		if (Object.values(pdForms.constants).indexOf(type) === -1) {
 			type = pdForms.constants.ERROR_MESSAGE;
 		}
 

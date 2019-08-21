@@ -27,4 +27,14 @@
 			return null;
 		};
 	}
+
+
+	if (! Object.values) {
+		Object.values = function (obj) {
+			return Object.keys(obj).map(function(i) {
+				return obj[i];
+			});
+		}
+	}
+
 })();
