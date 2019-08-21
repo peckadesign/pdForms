@@ -106,6 +106,24 @@ pdForms.normalizeRules = function(rules) {
 
 
 /**
+ * Returns first rule with name op from rules or null.
+ */
+pdForms.getRuleByOp = function(rules, op) {
+	for (var j in rules) {
+		var rule = rules[j];
+
+		if (pdForms.formatOperation(rule.op) === op) {
+			return rule;
+		} else if (rule.rules) {
+			return pdForms.getRuleByOp(rule.rules, op);
+		}
+	}
+
+	return null;
+};
+
+
+/**
  * Validates ever-focused inputs, using data-nette-rules and data-pd-rules. Validates all grouped elements together.
  * This function is not used when validating whole form, eg. by submit event.
  */
