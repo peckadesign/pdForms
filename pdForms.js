@@ -320,6 +320,11 @@ pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
 			}
 		}
 
+
+		// fill in input fields recieved in payload
+		pdForms.ajaxFillDependentInputs(elem, payload, arg);
+
+
 		// process callback if any
 		if (typeof pdForms.ajaxCallbacks[op] === 'function') {
 			pdForms.ajaxCallbacks[op](elem, payload, arg);
@@ -329,22 +334,19 @@ pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
 
 
 /**
- * Callbacks for ajax rules, called on success. Every ajax rule must be a property in this object. Either
- * function (then it is used as callback when rule-associated AJAX completes) or any other value (then it is used just to
- * identify a rule as asynchronous).
+ * Fill in values into inputs defined in arg.inputs if the value is defined in payload.
  */
-pdForms.ajaxCallbacks = {
-	'PdFormsRules_validTIN': function(elem, payload, arg) {
-		if (typeof payload === 'object' && payload.valid && typeof arg.inputs === 'object') {
-			for (var input in arg.inputs) {
-				if (arg.inputs.hasOwnProperty(input) && payload.hasOwnProperty(input)) {
-					$input = $('#' + arg.inputs[input]);
-					if ($input.length && ! $input.val()) {
-						$input
-							.val(payload[input])
-							.trigger('change')
-							.trigger('validate.pdForms');
-					}
+pdForms.ajaxFillDependentInputs = function(elem, payload, arg) {
+	if (typeof payload === 'object' && payload.valid && typeof payload.dependentInputs === 'object' && typeof arg === 'object' && typeof arg.dependentInputs === 'object') {
+		for (var inputId in arg.dependentInputs) {
+			if (arg.dependentInputs.hasOwnProperty(inputId) && payload.dependentInputs.hasOwnProperty(inputId)) {
+				var input = document.getElementById(arg.dependentInputs[inputId]);
+
+				if (input && ! input.value) {
+					$(input)
+						.val(payload.dependentInputs[inputId])
+						.trigger('change')
+						.trigger('validate.pdForms');
 				}
 			}
 		}
@@ -488,9 +490,9 @@ Nette.validators.PdFormsRules_validatePhone = function(elem, arg, val) {
 	return Nette.validators.regexp(elem, String(/^\+[0-9]{3} ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/), val);
 };
 
-Nette.validators.PdFormsRules_validTIN = function(elem, arg, val) {
+Nette.validators.PdFormsRules_validateAjax = function(elem, arg, val) {
 	$.nette.ajax(
-		pdForms.getAjaxRequestSettings(elem, 'PdFormsRules_validTIN', arg, { dic: val })
+		pdForms.getAjaxRequestSettings(elem, 'PdFormsRules_validateAjax', arg, { dic: val })
 	);
 
 	return true;
