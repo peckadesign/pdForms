@@ -28,6 +28,7 @@ $ cat bower.json
     - Odebrání AJAXového pravidla (včetně callbacku) `PdFormsRules_validTIN` a jeho nahrazení za obecné `PdFormsRules_validateAjax`.
     - Není nutné vytvářet prázdný callback pro identifikaci AJAXového pravidla. To je nyní rozpoznáno díky příznaku z back-endu.  
     - Přejmenována metoda na ověření, zda pravidla obsahují ajaxové pravidla. Nově `pdForms.hasAjaxRule` místo ~~`pdForms.hasAsyncRule`~~.
+    - Očekávaný placeholder pro AJAX spinner má třídu `pdforms-ajax-spinner--HTML_ID_INPUTU` místo ~~`ajax-validation-spinner--HTML_ID_INPUTU`~~  
 
 
 ### v1.3.9

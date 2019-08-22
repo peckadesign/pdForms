@@ -99,6 +99,10 @@ pdForms.normalizeRules = function(rules) {
 				rule.msg[i] = rule.arg.msg[i];
 			}
 		}
+
+		if (rule.rules) {
+			rule.rules = pdForms.normalizeRules(rule.rules);
+		}
 	}
 
 	return rules;
@@ -140,7 +144,9 @@ pdForms.validateInput = function(e, $inputs) {
 		if ($(this).data('ever-focused')) {
 			// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
 			var ret = Nette.validateControl(this);
+
 			var rules = Nette.parseJSON(this.getAttribute('data-nette-rules'));
+			rules = pdForms.normalizeRules(rules);
 			var hasAjaxRule = pdForms.hasAjaxRule(rules);
 
 			// has to be here and not inside validateControl as it should add ok class only if whole input is valid (not only parts of condional rule etc.)
@@ -174,7 +180,7 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 			var key = pdForms.getAjaxQueueKey(elem, op);
 			pdForms.ajaxQueue[key] = {
 				msg: rule.msg,
-				optional: rule.isOptional,
+				isOptional: rule.isOptional,
 				onlyCheck: onlyCheck
 			};
 		}
@@ -259,7 +265,7 @@ pdForms.getAjaxRequestSettings = function(elem, op, arg, data) {
 		url: arg.ajaxUrl,
 		data: (data ? data : null),
 		timeout: 5000,
-		spinner: '.ajax-validation-spinner--' + elem.id,
+		spinner: '.pdforms-ajax-spinner--' + elem.id,
 		off: ['snippets', 'history', 'unique', 'abort'],
 		beforeSend: function(jqXHR, settings) {
 			$(elem).addClass('inp-loading');
@@ -332,22 +338,31 @@ pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
 	}
 };
 
+pdForms.ajaxCallbacks = pdForms.ajaxCallbacks || {};
 
 /**
  * Fill in values into inputs defined in arg.inputs if the value is defined in payload.
  */
 pdForms.ajaxFillDependentInputs = function(elem, payload, arg) {
 	if (typeof payload === 'object' && payload.valid && typeof payload.dependentInputs === 'object' && typeof arg === 'object' && typeof arg.dependentInputs === 'object') {
-		for (var inputId in arg.dependentInputs) {
-			if (arg.dependentInputs.hasOwnProperty(inputId) && payload.dependentInputs.hasOwnProperty(inputId)) {
-				var input = document.getElementById(arg.dependentInputs[inputId]);
+		for (var inputName in arg.dependentInputs) {
+			if (! arg.dependentInputs.hasOwnProperty(inputName)) {
+				continue;
+			}
 
-				if (input && ! input.value) {
-					$(input)
-						.val(payload.dependentInputs[inputId])
-						.trigger('change')
-						.trigger('validate.pdForms');
-				}
+			var inputId = arg.dependentInputs[inputName];
+
+			if (! payload.dependentInputs.hasOwnProperty(inputId)) {
+				continue;
+			}
+
+			var input = document.getElementById(inputId);
+
+			if (input && ! input.value) {
+				$(input)
+					.val(payload.dependentInputs[inputId])
+					.trigger('change')
+					.trigger('validate.pdForms');
 			}
 		}
 	}
@@ -491,8 +506,21 @@ Nette.validators.PdFormsRules_validatePhone = function(elem, arg, val) {
 };
 
 Nette.validators.PdFormsRules_validateAjax = function(elem, arg, val) {
+
+	var data = {
+		inputValue: val,
+		dependentInputs: {}
+	};
+
+	for (var i in arg.dependentInputs) {
+		data.dependentInputs[i] = {
+			htmlId: arg.dependentInputs[i],
+			value: document.getElementById(arg.dependentInputs[i]).value
+		}
+	}
+
 	$.nette.ajax(
-		pdForms.getAjaxRequestSettings(elem, 'PdFormsRules_validateAjax', arg, { dic: val })
+		pdForms.getAjaxRequestSettings(elem, 'PdFormsRules_validateAjax', arg, data)
 	);
 
 	return true;
