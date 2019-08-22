@@ -62,9 +62,9 @@
 	 * Constants for messages. Used in CSS class names.
 	 */
 	pdForms.constants = {
-		ERROR_MESSAGE: 'error',
-		INFO_MESSAGE: 'info',
-		OK_MESSAGE: 'valid'
+		MESSAGE_ERROR: 'error',
+		MESSAGE_INFO: 'info',
+		MESSAGE_VALID: 'valid'
 	};
 
 
@@ -165,7 +165,7 @@
 				// has to be here and not inside validateControl as it should add ok class only if whole input is valid (not only parts of condional rule etc.)
 				if (ret && ! hasAjaxRule) {
 					// add pdforms-valid class name if the input is valid
-					pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE);
+					pdForms.addMessage(elem, null, pdForms.constants.MESSAGE_VALID);
 				}
 			}
 		});
@@ -211,10 +211,10 @@
 						if (rule.msg.invalid) {
 							pdForms.removeMessages(elem, true);
 						}
-						pdForms.addMessage(elem, rule.msg.invalid, rule.isOptional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+						pdForms.addMessage(elem, rule.msg.invalid, rule.isOptional ? pdForms.constants.MESSAGE_INFO : pdForms.constants.MESSAGE_ERROR);
 					}
 					else if (rule.msg.valid) {
-						pdForms.addMessage(elem, rule.msg.valid, pdForms.constants.OK_MESSAGE);
+						pdForms.addMessage(elem, rule.msg.valid, pdForms.constants.MESSAGE_VALID);
 					}
 				}
 
@@ -288,25 +288,25 @@
 				pdForms.removeMessages(elem, true);
 
 				if (status in msg && msg[status]) {
-					var msgType = pdForms.constants.INFO_MESSAGE;
+					var msgType = pdForms.constants.MESSAGE_ERROR;
 
 					if (typeof payload === 'object' && payload.messageType) {
 						msgType = payload.messageType;
 					} else if (status === 'invalid' && ! isOptional) {
-						msgType = pdForms.constants.ERROR_MESSAGE;
+						msgType = pdForms.constants.MESSAGE_ERROR;
 					} else if (status === 'valid') {
-						msgType = pdForms.constants.OK_MESSAGE;
+						msgType = pdForms.constants.MESSAGE_VALID;
 					}
 
-					if (isOptional && msgType === pdForms.constants.ERROR_MESSAGE) {
-						msgType = pdForms.constants.INFO_MESSAGE;
+					if (isOptional && msgType === pdForms.constants.MESSAGE_ERROR) {
+						msgType = pdForms.constants.MESSAGE_INFO;
 					}
 
 					pdForms.addMessage(elem, msg[status], msgType, true);
 				}
 				else if (status === 'valid') {
 					// add pdforms-valid class name if the input is valid and no message is specified
-					pdForms.addMessage(elem, null, pdForms.constants.OK_MESSAGE, true);
+					pdForms.addMessage(elem, null, pdForms.constants.MESSAGE_VALID, true);
 				}
 			}
 
@@ -406,7 +406,7 @@
 		}
 
 		if (Object.values(pdForms.constants).indexOf(type) === -1) {
-			type = pdForms.constants.ERROR_MESSAGE;
+			type = pdForms.constants.MESSAGE_ERROR;
 		}
 
 		placeholder.elem.classList ?
@@ -425,7 +425,7 @@
 		}
 
 		// global message or non-error message or first error message
-		if (placeholder.isGlobal || type !== pdForms.constants.ERROR_MESSAGE || (type === pdForms.constants.ERROR_MESSAGE && ((' ' + placeholder.elem.className + ' ').indexOf(' ' + type + ' ') === -1))) {
+		if (placeholder.isGlobal || type !== pdForms.constants.MESSAGE_ERROR || (type === pdForms.constants.MESSAGE_ERROR && ((' ' + placeholder.elem.className + ' ').indexOf(' ' + type + ' ') === -1))) {
 			tagName = placeholder.elem.getAttribute('data-pdforms-messages-tagname') || tagName;
 			className = (tagName === 'p') ? 'message message--' + type : className;
 
