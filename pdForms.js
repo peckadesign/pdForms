@@ -494,6 +494,23 @@ pdForms.removeMessages = function(elem, removeAjaxRulesMessages) {
 };
 
 
+pdForms.getAjaxUrlParameters = function(elem, arg, val) {
+	var parameters = {
+		inputValue: val,
+		dependentInputs: {}
+	};
+
+	for (var i in arg.dependentInputs) {
+		parameters.dependentInputs[i] = {
+			htmlId: arg.dependentInputs[i],
+			value: document.getElementById(arg.dependentInputs[i]).value
+		}
+	}
+
+	return parameters;
+};
+
+
 /**
  * pd-rules
  */
@@ -506,21 +523,10 @@ Nette.validators.PdFormsRules_validatePhone = function(elem, arg, val) {
 };
 
 Nette.validators.PdFormsRules_validateAjax = function(elem, arg, val) {
-
-	var data = {
-		inputValue: val,
-		dependentInputs: {}
-	};
-
-	for (var i in arg.dependentInputs) {
-		data.dependentInputs[i] = {
-			htmlId: arg.dependentInputs[i],
-			value: document.getElementById(arg.dependentInputs[i]).value
-		}
-	}
+	var parameters = pdForms.getAjaxUrlParameters(elem, arg, val);
 
 	$.nette.ajax(
-		pdForms.getAjaxRequestSettings(elem, 'PdFormsRules_validateAjax', arg, data)
+		pdForms.getAjaxRequestSettings(elem, 'PdFormsRules_validateAjax', arg, parameters)
 	);
 
 	return true;
