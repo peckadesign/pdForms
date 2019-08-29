@@ -15,6 +15,9 @@ $ cat bower.json
 }
 ```
 
+## Dokumentace
+
+- [Jak přidávat validace na formulářích](doc/validations.md)
 
 ## Changelog
 
