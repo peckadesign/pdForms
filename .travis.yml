@@ -1,0 +1,21 @@
+language: php
+
+php:
+    - 7.1
+
+script:
+    - vendor/bin/phpcs src/ tests/ --standard=vendor/pd/coding-standard/src/PeckaCodingStandard/ruleset.xml
+    - vendor/bin/phpcs src/ tests/ --standard=vendor/pd/coding-standard/src/PeckaCodingStandardStrict/ruleset.xml
+    - vendor/bin/phpstan analyse --level 7 src/
+    - vendor/bin/tester tests/
+
+before_script:
+    - composer config github-oauth.github.com ${COMPOSER_AUTH_TOKEN}
+    - composer validate
+    - composer install --no-interaction --prefer-dist --ignore-platform-reqs
+
+sudo: false
+
+cache:
+    directories:
+        - $HOME/.composer/cache
