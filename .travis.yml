@@ -10,9 +10,8 @@ script:
     - vendor/bin/tester tests/
 
 before_script:
-    - composer config github-oauth.github.com ${COMPOSER_AUTH_TOKEN}
     - composer validate
-    - composer install --no-interaction --prefer-dist --ignore-platform-reqs
+    - composer install --no-interaction --prefer-dist
 
 sudo: false
 
