@@ -37,18 +37,9 @@ final class RuleOptionsFactoryTest extends \Tester\TestCase
 			}
 		};
 
-		$linkGenerator = \Mockery::mock(\Nette\Application\LinkGenerator::class);
-
-		$this->ruleOptionsFactory = new \Pd\Forms\RuleOptionsFactory($translator, $linkGenerator);
+		$this->ruleOptionsFactory = new \Pd\Forms\RuleOptionsFactory($translator);
 	}
 
-
-	public function tearDown(): void
-	{
-		parent::tearDown();
-
-		\Mockery::close();
-	}
 }
 
 (new \PdTests\Unit\Forms\RuleOptionsFactoryTest())->run();

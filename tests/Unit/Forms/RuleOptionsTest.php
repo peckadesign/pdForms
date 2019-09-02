@@ -87,11 +87,7 @@ final class RuleOptionsTest extends \Tester\TestCase
 			}
 		};
 
-		$linkGenerator = \Mockery::mock(\Nette\Application\LinkGenerator::class);
-		$linkGenerator->shouldReceive('link')
-			->andReturn('http://ajaxValidationTarget.pecka');
-
-		$this->ruleOptionsFactory = new \Pd\Forms\RuleOptionsFactory($translator, $linkGenerator);
+		$this->ruleOptionsFactory = new \Pd\Forms\RuleOptionsFactory($translator);
 
 		$this->validationService = new class() implements \Pd\Forms\Validation\ValidationServiceInterface {
 			public function validateInput($value, array $dependentInputs = []): \Pd\Forms\Validation\ValidationResult

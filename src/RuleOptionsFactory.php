@@ -9,29 +9,22 @@ final class RuleOptionsFactory
 	 */
 	private $translator;
 
-	/**
-	 * @var \Nette\Application\LinkGenerator
-	 */
-	private $linkGenerator;
-
 
 	public function __construct(
-		\Nette\Localization\ITranslator $translator,
-		\Nette\Application\LinkGenerator $linkGenerator
+		\Nette\Localization\ITranslator $translator
 	) {
 		$this->translator = $translator;
-		$this->linkGenerator = $linkGenerator;
 	}
 
 
 	public function createOptional(): \Pd\Forms\RuleOptions
 	{
-		return new \Pd\Forms\RuleOptions($this->translator, $this->linkGenerator, TRUE);
+		return new \Pd\Forms\RuleOptions($this->translator, TRUE);
 	}
 
 
 	public function createRequired(): \Pd\Forms\RuleOptions
 	{
-		return new \Pd\Forms\RuleOptions($this->translator, $this->linkGenerator, FALSE);
+		return new \Pd\Forms\RuleOptions($this->translator, FALSE);
 	}
 }

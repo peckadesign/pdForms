@@ -29,11 +29,6 @@ final class RuleOptions implements \JsonSerializable
 	private $translator;
 
 	/**
-	 * @var \Nette\Application\LinkGenerator
-	 */
-	private $linkGenerator;
-
-	/**
 	 * @var bool
 	 */
 	private $optional;
@@ -56,11 +51,9 @@ final class RuleOptions implements \JsonSerializable
 
 	public function __construct(
 		\Nette\Localization\ITranslator $translator,
-		\Nette\Application\LinkGenerator $linkGenerator,
 		bool $optional
 	) {
 		$this->translator = $translator;
-		$this->linkGenerator = $linkGenerator;
 		$this->optional = $optional;
 	}
 
@@ -79,7 +72,7 @@ final class RuleOptions implements \JsonSerializable
 	{
 		$this->checkValidationState($validationService);
 
-		$this->ajaxValidationTarget = $this->linkGenerator->link($validationLocation, ['optional' => $this->optional]);
+		$this->ajaxValidationTarget = $validationLocation;
 		$this->validationMessages = \array_merge($this->validationMessages, $messages);
 		$this->validationService = $validationService;
 
@@ -133,7 +126,7 @@ final class RuleOptions implements \JsonSerializable
 	}
 
 
-	public function jsonSerialize() // kvuli Html::attributes, který volá json_encode
+	public function jsonSerialize()
 	{
 		$serialized = [
 			'optional' => $this->optional,
