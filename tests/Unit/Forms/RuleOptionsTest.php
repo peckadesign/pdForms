@@ -38,7 +38,7 @@ final class RuleOptionsTest extends \Tester\TestCase
 
 		\Tester\Assert::throws(static function () use ($required): void {
 			$required->addDependentInput('some', new \Nette\Forms\Controls\TextInput());
-		}, \Pd\Exception\InvalidStateException::class);
+		}, \RuntimeException::class);
 
 		$inputMock = \Mockery::mock(\Nette\Forms\Controls\TextInput::class);
 		$inputMock->shouldReceive('getHtmlId')->andReturn('frm-mocked');
@@ -72,7 +72,7 @@ final class RuleOptionsTest extends \Tester\TestCase
 
 		\Tester\Assert::throws(static function () use ($required): void {
 			$required->enableAjax('http://ajaxValidationTarget.pecka');
-		}, \Pd\Exception\InvalidStateException::class);
+		}, \RuntimeException::class);
 	}
 
 

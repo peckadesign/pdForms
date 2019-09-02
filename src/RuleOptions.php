@@ -92,7 +92,7 @@ final class RuleOptions implements \JsonSerializable
 		try {
 			$input->getForm();
 		} catch (\Nette\InvalidStateException $e) {
-			throw new \Pd\Exception\InvalidStateException(
+			throw new \RuntimeException(
 				\sprintf("Dependent input '%s' is not attached to form, attach it first", $name)
 			);
 		}
@@ -154,7 +154,7 @@ final class RuleOptions implements \JsonSerializable
 	private function checkValidationState(?\Pd\Forms\Validation\ValidationServiceInterface $validationService = NULL): void
 	{
 		if ( ! $this->optional && $validationService === NULL) {
-			throw new \Pd\Exception\InvalidStateException('Validation service must be defined for required rule');
+			throw new \RuntimeException('Validation service must be defined for required rule');
 		}
 	}
 }
