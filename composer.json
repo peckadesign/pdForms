@@ -23,7 +23,7 @@
 		"pd/pdproject": "dev-pd-rules-package as 19.08.28.1"
 	},
 	"require-dev": {
-		"nette/tester": "2.0.*",
+		"nette/tester": "2.*",
 		"mockery/mockery": "^1.0",
 		"pd/coding-standard": "1.21.*",
 		"phpstan/phpstan-shim": "0.10.*"
