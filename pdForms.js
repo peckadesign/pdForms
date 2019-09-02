@@ -65,9 +65,6 @@ pdForms.constants = {
 };
 
 
-pdForms.namespace = 'Pd\\Forms\\Rules::';
-
-
 pdForms.isOptionalRule = function(rule) {
 	return typeof rule.arg === 'object' && rule.arg.optional;
 };
@@ -494,7 +491,7 @@ pdForms.removeMessages = function(elem, removeAjaxRulesMessages) {
 };
 
 
-pdForms.getAjaxUrlParameters = function(elem, arg, val) {
+pdForms.getAjaxUrlParameters = function(elem, arg, val, value, callback) {
 	var parameters = {
 		inputValue: val,
 		dependentInputs: {}
@@ -522,11 +519,15 @@ Nette.validators.PdFormsRules_validatePhone = function(elem, arg, val) {
 	return Nette.validators.regexp(elem, String(/^\+[0-9]{3} ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/), val);
 };
 
-Nette.validators.PdFormsRules_validateAjax = function(elem, arg, val) {
-	var parameters = pdForms.getAjaxUrlParameters(elem, arg, val);
+Nette.validators.PdFormsRules_validateAjax = function(elem, arg, val, value, callback) {
+	if (typeof callback === 'undefined') {
+		callback = 'PdFormsRules_validateAjax';
+	}
+
+	var parameters = pdForms.getAjaxUrlParameters(elem, arg, val, value, callback);
 
 	$.nette.ajax(
-		pdForms.getAjaxRequestSettings(elem, 'PdFormsRules_validateAjax', arg, parameters)
+		pdForms.getAjaxRequestSettings(elem, callback, arg, parameters)
 	);
 
 	return true;
