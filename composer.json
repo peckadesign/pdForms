@@ -2,8 +2,12 @@
 	"name": "pd/pdforms",
 	"license": "BSD",
 	"type": "library",
-	"description": "Knihovna umožnující pokročilé validace Nette formulářů",
+	"description": "Enhanced backend & frontend validation for Nette forms",
 	"authors": [
+		{
+			"name": "PeckaDesign",
+			"email": "info@peckadesign.cz"
+		},
 		{
 			"name": "Radek Šerý",
 			"email": "radek.sery@peckadesign.cz"
@@ -19,11 +23,11 @@
 		"nette/application": "2.*",
 		"nette/forms": "2.*",
 		"nette/di": "2.*",
-		"nette/utils": "2.*",
-		"pd/pdproject": "dev-pd-rules-package as 19.08.28.1"
+		"pd/utils": "dev-validators"
 	},
 	"require-dev": {
 		"nette/tester": "2.*",
+		"nette/utils": "2.*",
 		"mockery/mockery": "^1.0",
 		"pd/coding-standard": "1.21.*",
 		"phpstan/phpstan-shim": "0.10.*"
@@ -41,7 +45,7 @@
 	"repositories": [
 		{
 			"type": "vcs",
-			"url": "https://github.com/peckadesign/pdproject5"
+			"url": "https://github.com/peckadesign/utils"
 		}
 	]
 }

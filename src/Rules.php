@@ -4,15 +4,14 @@ namespace Pd\Forms;
 
 final class Rules
 {
-
 	public const PHONE = self::class . '::validatePhone';
 	public const CONTAINS_NUMBER = self::class . '::validateContainsNumber';
+	public const NO_EXTERNAL_SOURCES = self::class . '::validateNoExternalSources';
 	public const AJAX = self::class . '::validateAjax';
 
 
 	private function __construct()
 	{
-
 	}
 
 
@@ -33,6 +32,16 @@ final class Rules
 		}
 
 		return \Pd\Utils\Validators::containsNumber($control->getValue());
+	}
+
+
+	public static function validateNoExternalSources(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	{
+		if ($options->isOptional() || ! $control->getValue()) {
+			return TRUE;
+		}
+
+		return \Pd\Utils\Validators::notContainsExternalSources($control->getValue());
 	}
 
 
@@ -66,5 +75,4 @@ final class Rules
 
 		return TRUE;
 	}
-
 }
