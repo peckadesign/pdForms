@@ -2,7 +2,7 @@
 
 namespace Pd\Forms\Validation;
 
-abstract class ValidationController extends \Nette\Application\UI\Presenter implements \Pd\Forms\Validation\ValidationControllerInterface
+abstract class AbstractValidationController extends \Nette\Application\UI\Presenter implements \Pd\Forms\Validation\ValidationControllerInterface
 {
 	public function actionDefault($inputValue = NULL, array $dependentInputs = []): void
 	{

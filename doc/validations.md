@@ -92,13 +92,13 @@ Z daného příkladu musí být jasné, že na backendu ale ještě nejsme hotov
 
 Validaci lze opět pěkně zobecnit, takže balíček obsahuje pro oba způsoby validace předdefinované rozhraní a pro frontend i připravený controller. 
 
-`ValidationController`:
+`AbstractValidationController`:
 ```php
 <?php declare(strict_types = 1);
 
 namespace App\ApiModule\FrontModule;
 
-class CheckBankPresenter extends \Pd\Forms\Validation\ValidationController
+class CheckBankPresenter extends \Pd\Forms\Validation\AbstractValidationController
 {
 	/**
 	 * @var \App\OrderModule\BankAccountValidator
