@@ -119,9 +119,9 @@ final class RuleOptions implements \JsonSerializable
 			throw new \Exception(\sprintf("Dependent input with name '%s' already registered", $name));
 		}
 
-		if ( ! is_scalar($context) && ! is_array($context)) {
+		if ( ! \is_scalar($context) && ! \is_array($context) && ! ($context instanceof \JsonSerializable)) {
 			throw new \InvalidArgumentException(
-				\sprintf("Only scalar or array are allowed as context value, %s provided", \gettype($context))
+				\sprintf("Only scalar, array or JsonSerializable implementor are allowed as context value, %s provided", \gettype($context))
 			);
 		}
 

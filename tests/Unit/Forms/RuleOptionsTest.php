@@ -49,7 +49,12 @@ final class RuleOptionsTest extends \Tester\TestCase
 
 		$required->addContext('gimme', 'fuel')
 			->addContext('gimme 2', ['fuel', 'fire'])
-		;
+			->addContext('class', new class () implements \JsonSerializable {
+				public function jsonSerialize()
+				{
+					return ['serialized' => 'class'];
+				}
+			});
 
 		$serialized = \Nette\Utils\Json::encode($required);
 		$expected = \Nette\Utils\Json::encode([
@@ -69,6 +74,9 @@ final class RuleOptionsTest extends \Tester\TestCase
 				'gimme 2' => [
 					'fuel',
 					'fire',
+				],
+				'class' => [
+					'serialized' => 'class',
 				],
 			],
 		]);
@@ -104,7 +112,7 @@ final class RuleOptionsTest extends \Tester\TestCase
 		\Tester\Assert::same(['fuel', 'fire'], $optional->getContext('gimme 2'));
 
 		\Tester\Assert::throws(static function () use ($optional): void {
-			$optional->addContext('class', new class (){});
+			$optional->addContext('class', new class () {});
 		}, \InvalidArgumentException::class);
 	}
 
