@@ -47,6 +47,10 @@ final class RuleOptionsTest extends \Tester\TestCase
 		$required->addDependentInput('first', $inputMock);
 		$required->addDependentInput('second', $inputMock);
 
+		$required->addContext('gimme', 'fuel')
+			->addContext('gimme 2', ['fuel', 'fire'])
+		;
+
 		$serialized = \Nette\Utils\Json::encode($required);
 		$expected = \Nette\Utils\Json::encode([
 			'optional' => FALSE,
@@ -59,6 +63,13 @@ final class RuleOptionsTest extends \Tester\TestCase
 			'dependentInputs' => [
 				'first' => 'frm-mocked',
 				'second' => 'frm-mocked',
+			],
+			'context' => [
+				'gimme' => 'fuel',
+				'gimme 2' => [
+					'fuel',
+					'fire',
+				],
 			],
 		]);
 
@@ -73,6 +84,24 @@ final class RuleOptionsTest extends \Tester\TestCase
 		\Tester\Assert::throws(static function () use ($required): void {
 			$required->enableAjax('http://ajaxValidationTarget.pecka');
 		}, \RuntimeException::class);
+	}
+
+
+	public function testContextHandling(): void
+	{
+		$optional = $this->ruleOptionsFactory->createOptional();
+
+		$optional->addContext('gimme', 'fuel');
+
+		\Tester\Assert::same('fuel', $optional->getContext('gimme'));
+
+		\Tester\Assert::throws(static function () use ($optional): void {
+			$optional->addContext('gimme', ['fuel', 'fire']);
+		}, \Exception::class);
+
+		$optional->addContext('gimme 2', ['fuel', 'fire']);
+
+		\Tester\Assert::same(['fuel', 'fire'], $optional->getContext('gimme 2'));
 	}
 
 

@@ -48,6 +48,11 @@ final class RuleOptions implements \JsonSerializable
 	 */
 	private $dependentInputCollection = [];
 
+	/**
+	 * @var array
+	 */
+	private $contextStorage = [];
+
 
 	public function __construct(
 		\Nette\Localization\ITranslator $translator,
@@ -103,6 +108,37 @@ final class RuleOptions implements \JsonSerializable
 	}
 
 
+	/**
+	 * @param string $name
+	 * @param mixed $context
+	 * @throws \Exception
+	 */
+	public function addContext(string $name, $context): self
+	{
+		if (\array_key_exists($name, $this->contextStorage)) {
+			throw new \Exception(\sprintf("Dependent input with name '%s' already registered", $name));
+		}
+
+		$this->contextStorage[$name] = $context;
+
+		return $this;
+	}
+
+
+	/**
+	 * @return mixed|null
+	 * @throws \Exception
+	 */
+	public function getContext(string $name)
+	{
+		if ( ! \array_key_exists($name, $this->contextStorage)) {
+			throw new \Exception(\sprintf("Context '%s' not found in storage", $name));
+		}
+
+		return $this->contextStorage[$name] ?? NULL;
+	}
+
+
 	public function getValidationService(): ?\Pd\Forms\Validation\ValidationServiceInterface
 	{
 		return $this->validationService;
@@ -139,12 +175,16 @@ final class RuleOptions implements \JsonSerializable
 			}, \array_filter($this->validationMessages));
 		}
 
-		if ($this->dependentInputCollection) {
+		if (\count($this->dependentInputCollection)) {
 			$serialized['dependentInputs'] =
 				\array_map(static function (\Nette\Forms\Controls\BaseControl $input): string {
 					return $input->getHtmlId();
 				}, $this->dependentInputCollection)
 			;
+		}
+
+		if (\count($this->contextStorage)) {
+			$serialized['context'] = $this->contextStorage;
 		}
 
 		return $serialized;
