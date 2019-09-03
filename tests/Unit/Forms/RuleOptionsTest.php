@@ -102,6 +102,10 @@ final class RuleOptionsTest extends \Tester\TestCase
 		$optional->addContext('gimme 2', ['fuel', 'fire']);
 
 		\Tester\Assert::same(['fuel', 'fire'], $optional->getContext('gimme 2'));
+
+		\Tester\Assert::throws(static function () use ($optional): void {
+			$optional->addContext('class', new class (){});
+		}, \InvalidArgumentException::class);
 	}
 
 

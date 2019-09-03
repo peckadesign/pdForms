@@ -119,6 +119,12 @@ final class RuleOptions implements \JsonSerializable
 			throw new \Exception(\sprintf("Dependent input with name '%s' already registered", $name));
 		}
 
+		if ( ! is_scalar($context) && ! is_array($context)) {
+			throw new \InvalidArgumentException(
+				\sprintf("Only scalar or array are allowed as context value, %s provided", \gettype($context))
+			);
+		}
+
 		$this->contextStorage[$name] = $context;
 
 		return $this;
