@@ -1,12 +1,12 @@
 {
-	"name": "pd/pdforms",
+	"name": "pd/forms",
 	"license": "BSD",
 	"type": "library",
 	"description": "Enhanced backend & frontend validation for Nette forms",
 	"authors": [
 		{
 			"name": "PeckaDesign",
-			"email": "info@peckadesign.cz"
+			"email": "support@peckadesign.cz"
 		},
 		{
 			"name": "Radek Šerý",
