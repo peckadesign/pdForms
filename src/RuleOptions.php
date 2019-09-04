@@ -71,17 +71,29 @@ final class RuleOptions implements \JsonSerializable
 
 	public function enableAjax(
 		string $validationLocation,
-		array $messages = [],
 		?\Pd\Forms\Validation\ValidationServiceInterface $validationService = NULL
 	): self
 	{
 		$this->checkValidationState($validationService);
 
 		$this->ajaxValidationTarget = $validationLocation;
-		$this->validationMessages = \array_merge($this->validationMessages, $messages);
 		$this->validationService = $validationService;
 
 		return $this;
+	}
+
+
+	public function addValidationMessage(string $key, string $message): self
+	{
+		$this->validationMessages[$key] = $message;
+
+		return $this;
+	}
+
+
+	public function getValidationMessage(string $key): ?string
+	{
+		return $this->validationMessages[$key] ?? NULL;
 	}
 
 
@@ -159,12 +171,6 @@ final class RuleOptions implements \JsonSerializable
 				'value' => $control->getValue(),
 			];
 		}, $this->dependentInputCollection);
-	}
-
-
-	public function getValidationMessage(string $key): ?string
-	{
-		return $this->validationMessages[$key] ?? NULL;
 	}
 
 

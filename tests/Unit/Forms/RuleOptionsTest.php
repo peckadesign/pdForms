@@ -26,14 +26,9 @@ final class RuleOptionsTest extends \Tester\TestCase
 		\Tester\Assert::same(\Nette\Utils\Json::encode(['optional' => TRUE]), \Nette\Utils\Json::encode($optional));
 
 		$required = $this->ruleOptionsFactory->createRequired()
-			->enableAjax(
-				'http://ajaxValidationTarget.pecka',
-				[
-					'first' => 'message',
-					'second' => 'message 2',
-				],
-				$this->validationService
-			)
+			->enableAjax('http://ajaxValidationTarget.pecka', $this->validationService)
+			->addValidationMessage('first', 'message')
+			->addValidationMessage('second', 'message 2')
 		;
 
 		\Tester\Assert::throws(static function () use ($required): void {
