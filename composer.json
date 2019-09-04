@@ -23,7 +23,7 @@
 		"nette/application": "2.*",
 		"nette/forms": "2.*",
 		"nette/di": "2.*",
-		"pd/utils": "dev-validators"
+		"pd/utils": "1.*"
 	},
 	"require-dev": {
 		"nette/tester": "2.*",
@@ -41,11 +41,5 @@
 		"psr-4": {
 			"PdTests\\": "tests"
 		}
-	},
-	"repositories": [
-		{
-			"type": "vcs",
-			"url": "https://github.com/peckadesign/utils"
-		}
-	]
+	}
 }
