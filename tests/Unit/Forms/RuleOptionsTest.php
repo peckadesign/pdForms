@@ -105,7 +105,7 @@ final class RuleOptionsTest extends \Tester\TestCase
 
 		\Tester\Assert::throws(static function () use ($optional): void {
 			$optional->addContext('gimme', ['fuel', 'fire']);
-		}, \Exception::class);
+		}, \Pd\Forms\Exceptions\InvalidKeyException::class);
 
 		$optional->addContext('gimme 2', ['fuel', 'fire']);
 

@@ -86,12 +86,12 @@ final class RuleOptions implements \JsonSerializable
 
 
 	/**
-	 * @throws \Exception
+	 * @throws \Pd\Forms\Exceptions\InvalidKeyException
 	 */
 	public function addDependentInput(string $name, \Nette\Forms\Controls\BaseControl $input): self
 	{
 		if (\array_key_exists($name, $this->dependentInputCollection)) {
-			throw new \Exception(\sprintf("Dependent input with name '%s' already registered", $name));
+			throw new \Pd\Forms\Exceptions\InvalidKeyException(\sprintf("Dependent input with name '%s' already registered", $name));
 		}
 
 		try {
@@ -111,12 +111,12 @@ final class RuleOptions implements \JsonSerializable
 	/**
 	 * @param string $name
 	 * @param mixed $context
-	 * @throws \Exception
+	 * @throws \Pd\Forms\Exceptions\InvalidKeyException
 	 */
 	public function addContext(string $name, $context): self
 	{
 		if (\array_key_exists($name, $this->contextStorage)) {
-			throw new \Exception(\sprintf("Dependent input with name '%s' already registered", $name));
+			throw new \Pd\Forms\Exceptions\InvalidKeyException(\sprintf("Context with name '%s' already registered", $name));
 		}
 
 		if ( ! \is_scalar($context) && ! \is_array($context) && ! ($context instanceof \JsonSerializable)) {
@@ -133,12 +133,12 @@ final class RuleOptions implements \JsonSerializable
 
 	/**
 	 * @return mixed|null
-	 * @throws \Exception
+	 * @throws \Pd\Forms\Exceptions\InvalidKeyException
 	 */
 	public function getContext(string $name)
 	{
 		if ( ! \array_key_exists($name, $this->contextStorage)) {
-			throw new \Exception(\sprintf("Context '%s' not found in storage", $name));
+			throw new \Pd\Forms\Exceptions\InvalidKeyException(\sprintf("Context '%s' not found in storage", $name));
 		}
 
 		return $this->contextStorage[$name] ?? NULL;
