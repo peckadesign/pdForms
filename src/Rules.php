@@ -4,45 +4,15 @@ namespace Pd\Forms;
 
 final class Rules
 {
+	public const AJAX = self::class . '::ajax';
 	public const PHONE = self::class . '::phone';
 	public const CONTAINS_NUMBER = self::class . '::containsNumber';
 	public const NO_EXTERNAL_SOURCES = self::class . '::noExternalSources';
 	public const CZECH_COMPANY_IDENTIFIER = self::class . '::czechCompanyIdentifier';
-	public const AJAX = self::class . '::ajax';
 
 
 	private function __construct()
 	{
-	}
-
-
-	public static function phone(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
-	{
-		if ($options->isOptional()) {
-			return TRUE;
-		}
-
-		return \Pd\Utils\Validators::isPhone($control->getValue());
-	}
-
-
-	public static function containsNumber(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
-	{
-		if ($options->isOptional()) {
-			return TRUE;
-		}
-
-		return \Pd\Utils\Validators::containsNumber($control->getValue());
-	}
-
-
-	public static function noExternalSources(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
-	{
-		if ($options->isOptional() || ! $control->getValue()) {
-			return TRUE;
-		}
-
-		return \Pd\Utils\Validators::notContainsExternalSources($control->getValue());
 	}
 
 
@@ -78,9 +48,39 @@ final class Rules
 	}
 
 
-	public static function czechCompanyIdentifier(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	public static function phone(\Nette\Forms\IControl $control, ?\Pd\Forms\RuleOptions $options): bool
 	{
-		if ($options->isOptional()) {
+		if ($options !== NULL && $options->isOptional()) {
+			return TRUE;
+		}
+
+		return \Pd\Utils\Validators::isPhone($control->getValue());
+	}
+
+
+	public static function containsNumber(\Nette\Forms\IControl $control, ?\Pd\Forms\RuleOptions $options): bool
+	{
+		if ($options !== NULL && $options->isOptional()) {
+			return TRUE;
+		}
+
+		return \Pd\Utils\Validators::containsNumber($control->getValue());
+	}
+
+
+	public static function noExternalSources(\Nette\Forms\IControl $control, ?\Pd\Forms\RuleOptions $options): bool
+	{
+		if ($options !== NULL && ($options->isOptional() || ! $control->getValue())) {
+			return TRUE;
+		}
+
+		return \Pd\Utils\Validators::notContainsExternalSources($control->getValue());
+	}
+
+
+	public static function czechCompanyIdentifier(\Nette\Forms\IControl $control, ?\Pd\Forms\RuleOptions $options): bool
+	{
+		if ($options !== NULL && $options->isOptional()) {
 			return TRUE;
 		}
 
