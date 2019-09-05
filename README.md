@@ -32,7 +32,7 @@ $ cat bower.json
     - Není nutné vytvářet prázdný callback pro identifikaci AJAXového pravidla. To je nyní rozpoznáno díky příznaku z back-endu.  
     - Přejmenována metoda na ověření, zda pravidla obsahují ajaxové pravidla. Nově `pdForms.hasAjaxRule` místo ~~`pdForms.hasAsyncRule`~~.
     - Očekávaný placeholder pro AJAX spinner má třídu `pdforms-ajax-spinner--HTML_ID_INPUTU` místo ~~`ajax-validation-spinner--HTML_ID_INPUTU`~~  
-
+    - Nastavení `messageType` v `payload` u AJAXových validací má nejvyšší prioritu při nastavení `class` validační zprávy. V případě nepovinného pravidla se automaticky mění `error` na `info`.
 
 ### v1.3.9
 - K mazání zpráv nedochází v případě, že validace inputu byla zavolána s `onlyCheck === true`. V tu chvíli neovlivňujeme žádným způsobem DOM.

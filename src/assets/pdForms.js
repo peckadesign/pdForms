@@ -303,19 +303,21 @@ pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
 			pdForms.removeMessages(elem, true);
 
 			if (status in msg && msg[status]) {
-				switch (status) {
-					case 'invalid':
-						pdForms.addMessage(elem, msg[status], isOptional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE, true);
-						break;
+				var msgType = pdForms.constants.ERROR_MESSAGE;
 
-					case 'valid':
-						pdForms.addMessage(elem, msg[status], pdForms.constants.OK_MESSAGE, true);
-						break;
-
-					default:
-						pdForms.addMessage(elem, msg[status], payload && payload.messageType ? payload.messageType : pdForms.constants.INFO_MESSAGE, true);
-						break;
+				if (typeof payload === 'object' && payload.messageType) {
+					msgType = payload.messageType;
+				} else if (status === 'invalid' && ! isOptional) {
+					msgType = pdForms.constants.ERROR_MESSAGE;
+				} else if (status === 'valid') {
+					msgType = pdForms.constants.OK_MESSAGE;
 				}
+
+				if (isOptional && msgType === pdForms.constants.ERROR_MESSAGE) {
+					msgType = pdForms.constants.INFO_MESSAGE;
+				}
+
+				pdForms.addMessage(elem, msg[status], msgType, true);
 			}
 			else if (status === 'valid') {
 				// add pdforms-valid class name if the input is valid and no message is specified
