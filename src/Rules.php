@@ -7,6 +7,7 @@ final class Rules
 	public const PHONE = self::class . '::phone';
 	public const CONTAINS_NUMBER = self::class . '::containsNumber';
 	public const NO_EXTERNAL_SOURCES = self::class . '::noExternalSources';
+	public const CZECH_COMPANY_IDENTIFIER = self::class . '::czechCompanyIdentifier';
 	public const AJAX = self::class . '::ajax';
 
 
@@ -74,5 +75,15 @@ final class Rules
 		}
 
 		return TRUE;
+	}
+
+
+	public static function czechCompanyIdentifier(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	{
+		if ($options->isOptional()) {
+			return TRUE;
+		}
+
+		return \Pd\Utils\Validators::isCzechCompanyIdentifier($control->getValue());
 	}
 }

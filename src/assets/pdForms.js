@@ -535,7 +535,7 @@ Nette.validators.PdFormsRules_ajax = function(elem, arg, val, value, callback) {
 	return true;
 };
 
-Nette.validators.PdFormsRules_validICO = function(elem, arg, val) {
+Nette.validators.PdFormsRules_czechCompanyIdentifier = function(elem, arg, val) {
 	var a = 0;
 	var b = 0;
 
