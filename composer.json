@@ -1,6 +1,6 @@
 {
 	"name": "pd/forms",
-	"license": "BSD",
+	"license": "MIT",
 	"type": "library",
 	"description": "Enhanced backend & frontend validation for Nette forms",
 	"authors": [
