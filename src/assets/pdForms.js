@@ -513,17 +513,17 @@ pdForms.getAjaxUrlParameters = function(elem, arg, val, value, callback) {
 /**
  * pd-rules
  */
-Nette.validators.PdFormsRules_validateContainsNumber = function(elem, arg, val) {
+Nette.validators.PdFormsRules_containsNumber = function(elem, arg, val) {
 	return Nette.validators.regexp(elem, String(/\d+/), val);
 };
 
-Nette.validators.PdFormsRules_validatePhone = function(elem, arg, val) {
+Nette.validators.PdFormsRules_phone = function(elem, arg, val) {
 	return Nette.validators.regexp(elem, String(/^\+[0-9]{3} ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/), val);
 };
 
-Nette.validators.PdFormsRules_validateAjax = function(elem, arg, val, value, callback) {
+Nette.validators.PdFormsRules_ajax = function(elem, arg, val, value, callback) {
 	if (typeof callback === 'undefined') {
-		callback = 'PdFormsRules_validateAjax';
+		callback = 'PdFormsRules_ajax';
 	}
 
 	var parameters = pdForms.getAjaxUrlParameters(elem, arg, val, value, callback);
