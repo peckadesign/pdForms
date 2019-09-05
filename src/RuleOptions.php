@@ -188,9 +188,11 @@ final class RuleOptions implements \JsonSerializable
 			unset($messages[self::STATUS_TIMEOUT]);
 		}
 
-		$serialized['msg'] = \array_map(function (string $message): string {
-			return $this->translator->translate($message);
-		}, $messages);
+		if (\count($messages)) {
+			$serialized['msg'] = \array_map(function (string $message): string {
+				return $this->translator->translate($message);
+			}, $messages);
+		}
 
 		if (\count($this->dependentInputCollection)) {
 			$serialized['dependentInputs'] =
