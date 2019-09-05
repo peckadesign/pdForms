@@ -4,5 +4,5 @@ namespace Pd\Forms\Validation;
 
 interface ValidationServiceInterface
 {
-	public function validateInput($value, bool $optional, array $dependentInputs = []): \Pd\Forms\Validation\ValidationResult;
+	public function validateInput($value, array $dependentInputs = []): \Pd\Forms\Validation\ValidationResult;
 }
