@@ -5,5 +5,5 @@ Knihovna poskytuje nástroje, pomocí kterých je možné zaregistrovat vlastní
 
 ## Dokumentace
 
-- [Jak přidávat validace na formulářích](doc/validations.md)
+- [Jak přidávat validace na formulářích](doc/index.md)
 - [Changelog](https://github.com/peckadesign/pdForms/releases)
