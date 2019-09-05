@@ -126,7 +126,7 @@ final class RuleOptionsTest extends \Tester\TestCase
 		$this->ruleOptionsFactory = new \Pd\Forms\RuleOptionsFactory($translator);
 
 		$this->validationService = new class() implements \Pd\Forms\Validation\ValidationServiceInterface {
-			public function validateInput($value, array $dependentInputs = []): \Pd\Forms\Validation\ValidationResult
+			public function validateInput($value, bool $optional, array $dependentInputs = []): \Pd\Forms\Validation\ValidationResult
 			{
 				return new \Pd\Forms\Validation\ValidationResult((bool) \strlen((string) $value));
 			}

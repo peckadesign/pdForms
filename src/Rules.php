@@ -56,7 +56,7 @@ final class Rules
 		/** @var \Pd\Forms\Validation\ValidationServiceInterface $validationService */
 		$validationService = $options->getValidationService();
 		$validationResult = $validationService
-			->validateInput($control->getValue(), $options->getNormalizedDependentInputs());
+			->validateInput($control->getValue(), $options->isOptional(), $options->getNormalizedDependentInputs());
 
 		if ($validationResult->getStatus() === \Pd\Forms\RuleOptions::STATUS_TIMEOUT) {
 			return TRUE; // externí služba není dostupná, formulář musí projít
