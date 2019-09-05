@@ -180,12 +180,17 @@ final class RuleOptions implements \JsonSerializable
 			'optional' => $this->optional,
 		];
 
+		$messages = \array_filter($this->validationMessages);
+
 		if ($this->ajaxValidationTarget) {
 			$serialized['ajaxUrl'] = $this->ajaxValidationTarget;
-			$serialized['msg'] = \array_map(function (string $message): string {
-				return $this->translator->translate($message);
-			}, \array_filter($this->validationMessages));
+		} else {
+			unset($messages[self::STATUS_TIMEOUT]);
 		}
+
+		$serialized['msg'] = \array_map(function (string $message): string {
+			return $this->translator->translate($message);
+		}, $messages);
 
 		if (\count($this->dependentInputCollection)) {
 			$serialized['dependentInputs'] =
