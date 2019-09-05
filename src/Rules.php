@@ -4,10 +4,10 @@ namespace Pd\Forms;
 
 final class Rules
 {
-	public const PHONE = self::class . '::validatePhone';
-	public const CONTAINS_NUMBER = self::class . '::validateContainsNumber';
-	public const NO_EXTERNAL_SOURCES = self::class . '::validateNoExternalSources';
-	public const AJAX = self::class . '::validateAjax';
+	public const PHONE = self::class . '::phone';
+	public const CONTAINS_NUMBER = self::class . '::containsNumber';
+	public const NO_EXTERNAL_SOURCES = self::class . '::noExternalSources';
+	public const AJAX = self::class . '::ajax';
 
 
 	private function __construct()
@@ -15,7 +15,7 @@ final class Rules
 	}
 
 
-	public static function validatePhone(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	public static function phone(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options->isOptional()) {
 			return TRUE;
@@ -25,7 +25,7 @@ final class Rules
 	}
 
 
-	public static function validateContainsNumber(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	public static function containsNumber(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options->isOptional()) {
 			return TRUE;
@@ -35,7 +35,7 @@ final class Rules
 	}
 
 
-	public static function validateNoExternalSources(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	public static function noExternalSources(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options->isOptional() || ! $control->getValue()) {
 			return TRUE;
@@ -48,7 +48,7 @@ final class Rules
 	/**
 	 * @param \Nette\Forms\Controls\BaseControl $control
 	 */
-	public static function validateAjax(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	public static function ajax(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options->isOptional()) {
 			return TRUE;
