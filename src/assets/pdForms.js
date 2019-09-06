@@ -4,24 +4,24 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 1.3.9
+ * @version 2.0.0
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
- * - add support for "asynchronous" validation rules - validation depends on async AJAX response; limitations:
- *   - async rule cannot be used as condition! (might be possible by using similar technique as with mandatory async rules)
- *   - mandatory async rule won't block form submit (in JS), so the page reloads (form won't be submitted because of
+ * - add support for "asynchronous" validation rules - validation depends on AJAX response; limitations:
+ *   - ajax rule cannot be used as condition! (might be possible by using similar technique as with mandatory ajax rules)
+ *   - mandatory ajax rule won't block form submit (in JS), so the page reloads (form won't be submitted because of
  *     server side check), check the todo list
  *
  *  TODO:
- *  - mandatory async rules:
- *    - create new array asyncErrors
- *    - on async rule error (in asyncEvaluate), flag is stored in asyncErrors, if the same field is valid later, flag
+ *  - mandatory ajax rules:
+ *    - create new array ajaxErrors
+ *    - on ajax rule error (in ajaxEvaluate), flag is stored in ajaxErrors, if the same field is valid later, flag
  *      is removed; only mandatory rules will appear here
  *    - rewrite Nette.validateForm:
  *      - call original Nette.validateForm, if it returns false, return false, if true, proceed
- *      - in interval check if asyncQueue (unprocessed rules) is empty (doesn't contain any mandatory async rule)
- *      - when all mandatory async rules are processed (prior step is done), check if asyncErrors is empty - if so
+ *      - in interval check if ajaxQueue (unprocessed rules) is empty (doesn't contain any mandatory ajax rule)
+ *      - when all mandatory ajax rules are processed (prior step is done), check if ajaxErrors is empty - if so
  *        return true, otherwise return false
  */
 
@@ -31,7 +31,7 @@ var pdForms = pdForms || {};
 /**
  * Version
  */
-pdForms.version = '1.3.8';
+pdForms.version = '2.0.0';
 
 
 /**
@@ -39,7 +39,6 @@ pdForms.version = '1.3.8';
  */
 pdForms.Nette = {
 	validateControl: Nette.validateControl,
-	validateRule:    Nette.validateRule,
 	toggleControl:   Nette.toggleControl,
 	initForm:        Nette.initForm
 };
@@ -66,28 +65,62 @@ pdForms.constants = {
 };
 
 
-pdForms.namespace = 'Pd\\Forms\\Rules::';
+pdForms.isOptionalRule = function(rule) {
+	return typeof rule.arg === 'object' && rule.arg.optional;
+};
 
 
-pdForms.isRuleOptional = function(rule) {
-	return Boolean(rule.arg) && typeof rule.arg === 'object' && 'optional' in rule.arg && rule.arg.optional;
+pdForms.isAjaxRule = function(rule) {
+	return typeof rule.arg === 'object' && 'ajaxUrl' in rule.arg;
 };
 
 
 /**
- * Method converts rules from Pd format into Nette compatible format. It effectively means flattening rule.arg structure
- * by removing rule.arg.optional and assigning rule.arg.data into rule.arg
- * @param rules
+ * Method converts rules from Pd format into Nette compatible format. There are two fags set - isOptional and isAjax -
+ * and rule.msg is converted into an object.
  */
-pdForms.normalizeRulesArg = function(rules) {
+pdForms.normalizeRules = function(rules) {
 	for (var j in rules) {
-		rules[j].optional = pdForms.isRuleOptional(rules[j]);
-		if ('arg' in rules[j] && typeof rules[j].arg === 'object' && 'data' in rules[j].arg) {
-			rules[j].arg = rules[j].arg.data;
+		var rule = rules[j];
+		rule.isOptional = pdForms.isOptionalRule(rule);
+		rule.isAjax = pdForms.isAjaxRule(rule);
+
+		if (typeof rule.msg === 'undefined') {
+			rule.msg = {};
+		} else if (typeof rule.msg === 'string') {
+			rule.msg = { 'invalid': rule.msg };
+		}
+
+		if (typeof rule.arg === 'object' && 'msg' in rule.arg) {
+			for (var i in rule.arg.msg) {
+				rule.msg[i] = rule.arg.msg[i];
+			}
+		}
+
+		if (rule.rules) {
+			rule.rules = pdForms.normalizeRules(rule.rules);
 		}
 	}
 
 	return rules;
+};
+
+
+/**
+ * Returns first rule with name op from rules or null.
+ */
+pdForms.getRuleByOp = function(rules, op) {
+	for (var j in rules) {
+		var rule = rules[j];
+
+		if (pdForms.formatOperation(rule.op) === op) {
+			return rule;
+		} else if (rule.rules) {
+			return pdForms.getRuleByOp(rule.rules, op);
+		}
+	}
+
+	return null;
 };
 
 
@@ -108,11 +141,13 @@ pdForms.validateInput = function(e, $inputs) {
 		if ($(this).data('ever-focused')) {
 			// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
 			var ret = Nette.validateControl(this);
+
 			var rules = Nette.parseJSON(this.getAttribute('data-nette-rules'));
-			var hasAsyncRule = pdForms.hasAsyncRule(rules);
+			rules = pdForms.normalizeRules(rules);
+			var hasAjaxRule = pdForms.hasAjaxRule(rules);
 
 			// has to be here and not inside validateControl as it should add ok class only if whole input is valid (not only parts of condional rule etc.)
-			if (ret && ! hasAsyncRule) {
+			if (ret && ! hasAjaxRule) {
 				// add pdforms-valid class name if the input is valid
 				pdForms.addMessage(this, null, pdForms.constants.OK_MESSAGE);
 			}
@@ -125,8 +160,8 @@ pdForms.validateInput = function(e, $inputs) {
  * Validates form element using optional nette-rules.
  */
 pdForms.validateControl = function(elem, rules, onlyCheck) {
-	// assumes the input is valid, therefore removing all messages except those associated with async rules; this
-	// prevents flashing of message, when async rule is evaluated - async rules removes their messages when the async
+	// assumes the input is valid, therefore removing all messages except those associated with ajax rules; this
+	// prevents flashing of message, when ajax rule is evaluated - ajax rules removes their messages when the ajax
 	// rule is evaluated; when onlyCheck is true, we dont' want to modify DOM at all
 	if (! onlyCheck) {
 		pdForms.removeMessages(elem, false);
@@ -134,43 +169,41 @@ pdForms.validateControl = function(elem, rules, onlyCheck) {
 
 	// validate rules one-by-one to know which passed
 	for (var id = 0, len = rules.length; id < len; id++) {
-		var op = pdForms.formatOperation(rules[id].op);
-		var async = op in pdForms.asyncCallbacks;
+		var rule = rules[id];
+		var op = pdForms.formatOperation(rule.op);
 
-		// if async validator is used, validate & push into queue of not-yet resolved rules
-		if (async) {
-			var key = pdForms.getAsyncQueueKey(elem, op);
-			pdForms.asyncQueue[key] = {
-				msg: rules[id].msg,
-				optional: rules[id].optional,
+		// if ajax validator is used, validate & push into queue of not-yet resolved rules
+		if (rule.isAjax) {
+			var key = pdForms.getAjaxQueueKey(elem, op);
+			pdForms.ajaxQueue[key] = {
+				msg: rule.msg,
+				isOptional: rule.isOptional,
 				onlyCheck: onlyCheck
 			};
 		}
 
-		var condition = !!rules[id].rules;
-		var valid = pdForms.Nette.validateControl(elem, [rules[id]], ! condition || onlyCheck);
+		var condition = !!rule.rules;
+		var valid = pdForms.Nette.validateControl(elem, [rule], ! condition || onlyCheck);
 
-		// if rule is async, then do not write any message
-		if (! async) {
+		// if rule is ajax, then do not write any message
+		if (! rule.isAjax) {
 			if (! onlyCheck) {
 				if (! valid) {
-					var msg = typeof rules[id].msg === 'object' ? rules[id].msg.invalid : rules[id].msg;
-
-					// if the rules[id] is sync and we have a new message, we need to remove previous messages
-					// (including async rules associated); checking for message presence ensures that conditional rules
+					// if the rule is sync and we have a new message, we need to remove previous messages
+					// (including ajax rules associated); checking for message presence ensures that conditional rules
 					// will show their message - their evaluating goes from deepest rule (where the message is defined),
 					// therefore condition is evaluated at last and must not remove the message
-					if (msg) {
+					if (rule.msg.invalid) {
 						pdForms.removeMessages(elem, true);
 					}
-					pdForms.addMessage(elem, msg, rules[id].optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
+					pdForms.addMessage(elem, rule.msg.invalid, rule.isOptional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE);
 				}
-				else if (typeof rules[id].msg === 'object' && 'valid' in rules[id].msg) {
-					pdForms.addMessage(elem, rules[id].msg.valid, pdForms.constants.OK_MESSAGE);
+				else if (rule.msg.valid) {
+					pdForms.addMessage(elem, rule.msg.valid, pdForms.constants.OK_MESSAGE);
 				}
 			}
 
-			if (! valid && ! rules[id].optional) {
+			if (! valid && ! rule.isOptional) {
 				return valid;
 			}
 		}
@@ -192,22 +225,12 @@ pdForms.formatOperation = function(op) {
 
 
 /**
- * Checks if given rules contains any async rule
+ * Checks if given rules contains any ajax rule
  */
-pdForms.hasAsyncRule = function(rules) {
+pdForms.hasAjaxRule = function(rules) {
 	for (var id = 0, len = rules.length; id < len; id++) {
-		var op = pdForms.formatOperation(rules[id].op);
-
-		if (op in pdForms.asyncCallbacks) {
+		if (rules[id].isAjax || (rules[id].rules && pdForms.hasAjaxRule(rules[id].rules))) {
 			return true;
-		}
-
-		if (rules[id].rules) {
-			var conditionalAsync = pdForms.hasAsyncRule(rules[id].rules);
-
-			if (conditionalAsync) {
-				return true;
-			}
 		}
 	}
 
@@ -217,15 +240,15 @@ pdForms.hasAsyncRule = function(rules) {
 
 
 /**
- * Queue of asynchronous validation rules which has not been yet processed.
+ * Queue of ajax validation rules which has not been yet processed.
  */
-pdForms.asyncQueue = {};
+pdForms.ajaxQueue = {};
 
 
 /**
- * Get key to async queue for given element and operation
+ * Get key to ajax queue for given element and operation
  */
-pdForms.getAsyncQueueKey = function(elem, op) {
+pdForms.getAjaxQueueKey = function(elem, op) {
 	return elem.getAttribute('id') + '--' + op;
 };
 
@@ -234,12 +257,12 @@ pdForms.getAsyncQueueKey = function(elem, op) {
  * Returns default settings for AJAX rules based on parameters. Either to be used directly as param for $.nette.ajax
  * call or as a default settings to be extended by custom properties.
  */
-pdForms.getAsyncRequestSettings = function(elem, op, arg, data) {
+pdForms.getAjaxRequestSettings = function(elem, op, arg, data) {
 	return {
-		url: arg.url,
+		url: arg.ajaxUrl,
 		data: (data ? data : null),
 		timeout: 5000,
-		spinner: '.ajax-validation-spinner--' + elem.id,
+		spinner: '.pdforms-ajax-spinner--' + elem.id,
 		off: ['snippets', 'history', 'unique', 'abort'],
 		beforeSend: function(jqXHR, settings) {
 			$(elem).addClass('inp-loading');
@@ -247,10 +270,10 @@ pdForms.getAsyncRequestSettings = function(elem, op, arg, data) {
 		success: function(payload) {
 			var status = payload.status || (payload.valid ? 'valid' : 'invalid');
 
-			pdForms.asyncEvaluate(elem, op, status, payload, arg);
+			pdForms.ajaxEvaluate(elem, op, status, payload, arg);
 		},
 		error: function(jqXHR, status, error, settings) {
-			pdForms.asyncEvaluate(elem, op, error, undefined, arg);
+			pdForms.ajaxEvaluate(elem, op, error, undefined, arg);
 		},
 		complete: function(jqXHR, status, settings) {
 			$(elem).removeClass('inp-loading');
@@ -264,15 +287,15 @@ pdForms.getAsyncRequestSettings = function(elem, op, arg, data) {
  * For given element and operation write validation result message and remove from queue; called by AJAX validator
  * after response is received.
  */
-pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
-	var key = pdForms.getAsyncQueueKey(elem, op);
+pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
+	var key = pdForms.getAjaxQueueKey(elem, op);
 
 	// found request in queue, otherwise do nothing
-	if (key in pdForms.asyncQueue) {
-		var msg = pdForms.asyncQueue[key].msg;
-		var optional = pdForms.asyncQueue[key].optional;
-		var onlyCheck = pdForms.asyncQueue[key].onlyCheck;
-		delete pdForms.asyncQueue[key];
+	if (key in pdForms.ajaxQueue) {
+		var msg = pdForms.ajaxQueue[key].msg;
+		var isOptional = pdForms.ajaxQueue[key].isOptional;
+		var onlyCheck = pdForms.ajaxQueue[key].onlyCheck;
+		delete pdForms.ajaxQueue[key];
 
 		// write validation result message
 		if (! onlyCheck) {
@@ -280,19 +303,21 @@ pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
 			pdForms.removeMessages(elem, true);
 
 			if (status in msg && msg[status]) {
-				switch (status) {
-					case 'invalid':
-						pdForms.addMessage(elem, msg[status], optional ? pdForms.constants.INFO_MESSAGE : pdForms.constants.ERROR_MESSAGE, true);
-						break;
+				var msgType = pdForms.constants.ERROR_MESSAGE;
 
-					case 'valid':
-						pdForms.addMessage(elem, msg[status], pdForms.constants.OK_MESSAGE, true);
-						break;
-
-					default:
-						pdForms.addMessage(elem, msg[status], payload && payload.messageType ? payload.messageType : pdForms.constants.INFO_MESSAGE, true);
-						break;
+				if (typeof payload === 'object' && payload.messageType) {
+					msgType = payload.messageType;
+				} else if (status === 'invalid' && ! isOptional) {
+					msgType = pdForms.constants.ERROR_MESSAGE;
+				} else if (status === 'valid') {
+					msgType = pdForms.constants.OK_MESSAGE;
 				}
+
+				if (isOptional && msgType === pdForms.constants.ERROR_MESSAGE) {
+					msgType = pdForms.constants.INFO_MESSAGE;
+				}
+
+				pdForms.addMessage(elem, msg[status], msgType, true);
 			}
 			else if (status === 'valid') {
 				// add pdforms-valid class name if the input is valid and no message is specified
@@ -300,32 +325,43 @@ pdForms.asyncEvaluate = function(elem, op, status, payload, arg) {
 			}
 		}
 
+
+		// fill in input fields recieved in payload
+		pdForms.ajaxFillDependentInputs(elem, payload, arg);
+
+
 		// process callback if any
-		if (op in pdForms.asyncCallbacks && typeof pdForms.asyncCallbacks[op] === 'function') {
-			pdForms.asyncCallbacks[op](elem, payload, arg);
+		if (typeof pdForms.ajaxCallbacks[op] === 'function') {
+			pdForms.ajaxCallbacks[op](elem, payload, arg);
 		}
 	}
 };
 
+pdForms.ajaxCallbacks = pdForms.ajaxCallbacks || {};
 
 /**
- * Callbacks for asynchronous rules, called on success. Every asynchronous rule must be a property in this object. Either
- * function (then it is used as callback when rule-associated AJAX completes) or any other value (then it is used just to
- * identify a rule as asynchronous).
+ * Fill in values into inputs defined in arg.inputs if the value is defined in payload.
  */
-pdForms.asyncCallbacks = {
-	'PdFormsRules_validTIN': function(elem, payload, arg) {
-		if (typeof payload === 'object' && 'valid' in payload && payload.valid && 'inputs' in arg) {
-			for (var input in arg.inputs) {
-				if (arg.inputs.hasOwnProperty(input) && payload.hasOwnProperty(input)) {
-					$input = $('#' + arg.inputs[input]);
-					if ($input.length && ! $input.val()) {
-						$input
-							.val(payload[input])
-							.trigger('change')
-							.trigger('validate.pdForms');
-					}
-				}
+pdForms.ajaxFillDependentInputs = function(elem, payload, arg) {
+	if (typeof payload === 'object' && payload.valid && typeof payload.dependentInputs === 'object' && typeof arg === 'object' && typeof arg.dependentInputs === 'object') {
+		for (var inputName in arg.dependentInputs) {
+			if (! arg.dependentInputs.hasOwnProperty(inputName)) {
+				continue;
+			}
+
+			var inputId = arg.dependentInputs[inputName];
+
+			if (! payload.dependentInputs.hasOwnProperty(inputId)) {
+				continue;
+			}
+
+			var input = document.getElementById(inputId);
+
+			if (input && ! input.value) {
+				$(input)
+					.val(payload.dependentInputs[inputId])
+					.trigger('change')
+					.trigger('validate.pdForms');
 			}
 		}
 	}
@@ -348,7 +384,7 @@ pdForms.asyncCallbacks = {
  * Using data-pdforms-messages-tagname we could change the default span (p in case of global messages) element.
  * Using data-pdforms-messages--global on elem we could force the message to be displayed in global message placeholder.
  */
-pdForms.addMessage = function(elem, message, type, isAsyncRuleMessage) {
+pdForms.addMessage = function(elem, message, type, isAjaxRuleMessage) {
 	if (! type in pdForms.constants) {
 		type = pdForms.constants.ERROR_MESSAGE;
 	}
@@ -385,8 +421,8 @@ pdForms.addMessage = function(elem, message, type, isAsyncRuleMessage) {
 
 			$msg = $('<' + tagName + ' class="' + className + ' pdforms-message" data-elem="' + $(elem).attr('name') + '">' + message + '</' + tagName + '>');
 
-			if (isAsyncRuleMessage) {
-				$msg.attr('data-async-rule', true);
+			if (isAjaxRuleMessage) {
+				$msg.attr('data-ajax-rule', true);
 			}
 
 			if (tagName === 'label') {
@@ -400,15 +436,15 @@ pdForms.addMessage = function(elem, message, type, isAsyncRuleMessage) {
 
 
 /**
- * Removes all messages associated with input. By default removes messages associated with async rules as well, but that
+ * Removes all messages associated with input. By default removes messages associated with ajax rules as well, but that
  * can be changed not to.
  */
-pdForms.removeMessages = function(elem, removeAsyncRulesMessages) {
+pdForms.removeMessages = function(elem, removeAjaxRulesMessages) {
 	var name = $(elem).attr('name');
 
 	// Default value should be true
-	if (typeof removeAsyncRulesMessages === 'undefined') {
-		removeAsyncRulesMessages = true;
+	if (typeof removeAjaxRulesMessages === 'undefined') {
+		removeAjaxRulesMessages = true;
 	}
 
 	// Find placeholders for input (input and global)
@@ -432,10 +468,10 @@ pdForms.removeMessages = function(elem, removeAsyncRulesMessages) {
 
 			$messages[key] = $messages[key].filter(function() {
 				var isElemAssociatedMessage = $(this).data('elem') === name;
-				var isAsyncRuleMessage = $(this).data('async-rule');
+				var isAjaxRuleMessage = $(this).data('ajax-rule');
 
-				// Remove async rules associated messages only if removeAsyncRulesMessages is true
-				var shouldRemove = isElemAssociatedMessage && (removeAsyncRulesMessages || (! removeAsyncRulesMessages && ! isAsyncRuleMessage));
+				// Remove ajax rules associated messages only if removeAjaxRulesMessages is true
+				var shouldRemove = isElemAssociatedMessage && (removeAjaxRulesMessages || (! removeAjaxRulesMessages && ! isAjaxRuleMessage));
 
 				if (shouldRemove) {
 					$removeMessages = $removeMessages.add(this);
@@ -457,51 +493,72 @@ pdForms.removeMessages = function(elem, removeAsyncRulesMessages) {
 };
 
 
+pdForms.getAjaxUrlParameters = function(elem, arg, val, value, callback) {
+	var parameters = {
+		inputValue: val,
+		dependentInputs: {}
+	};
+
+	for (var i in arg.dependentInputs) {
+		parameters.dependentInputs[i] = {
+			htmlId: arg.dependentInputs[i],
+			value: document.getElementById(arg.dependentInputs[i]).value
+		}
+	}
+
+	return parameters;
+};
+
+
 /**
  * pd-rules
  */
-pdForms.validators = {
-	'PdFormsRules_containsNumber': function(elem, arg, val) {
-		return Nette.validators.regexp(elem, String(/\d+/), val);
-	},
+Nette.validators.PdFormsRules_containsNumber = function(elem, arg, val) {
+	return Nette.validators.regexp(elem, String(/\d+/), val);
+};
 
-	'PdFormsRules_phone': function(elem, arg, val) {
-		return Nette.validators.regexp(elem, String(/^\+[0-9]{3} ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/), val);
-	},
+Nette.validators.PdFormsRules_phone = function(elem, arg, val) {
+	return Nette.validators.regexp(elem, String(/^\+[0-9]{3} ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/), val);
+};
 
-	'PdFormsRules_validTIN': function(elem, arg, val) {
-		$.nette.ajax(
-			pdForms.getAsyncRequestSettings(elem, 'PdFormsRules_validTIN', arg, { dic: val })
-		);
-
-		return true;
-	},
-
-	'PdFormsRules_validICO': function(elem, arg, val) {
-		var a = 0;
-		var b = 0;
-
-		val = val.replace(/\s/g, '');
-
-		if  (val.length !== 8 || ! Nette.validators.regexp(elem, String(/\d+/), val)) {
-			return false;
-		}
-
-		for (var i = 0 ; i < 7; i++) {
-			a += parseInt(val[i] * (8 - i));
-		}
-
-		a = a % 11;
-		if (a === 0) {
-			b = 1;
-		} else if (a === 1) {
-			b = 0;
-		} else {
-			b = 11 - a;
-		}
-
-		return parseInt(val[7]) === b;
+Nette.validators.PdFormsRules_ajax = function(elem, arg, val, value, callback) {
+	if (typeof callback === 'undefined') {
+		callback = 'PdFormsRules_ajax';
 	}
+
+	var parameters = pdForms.getAjaxUrlParameters(elem, arg, val, value, callback);
+
+	$.nette.ajax(
+		pdForms.getAjaxRequestSettings(elem, callback, arg, parameters)
+	);
+
+	return true;
+};
+
+Nette.validators.PdFormsRules_czechCompanyIdentifier = function(elem, arg, val) {
+	var a = 0;
+	var b = 0;
+
+	val = val.replace(/\s/g, '');
+
+	if  (val.length !== 8 || ! Nette.validators.regexp(elem, String(/\d+/), val)) {
+		return false;
+	}
+
+	for (var i = 0 ; i < 7; i++) {
+		a += parseInt(val[i] * (8 - i));
+	}
+
+	a = a % 11;
+	if (a === 0) {
+		b = 1;
+	} else if (a === 1) {
+		b = 0;
+	} else {
+		b = 11 - a;
+	}
+
+	return parseInt(val[7]) === b;
 };
 
 
@@ -533,28 +590,6 @@ Nette.addEvent = function(element, on, callback) {
 
 
 /**
- * Validates single rule. If there is no validator in Nette.validators, then try to use pdForms.validators.
- */
-Nette.validateRule = function(elem, op, arg, value) {
-	var ret = pdForms.Nette.validateRule(elem, op.substring(0, pdForms.namespace.length) === pdForms.namespace ? op.substring(pdForms.namespace.length) : op, arg, value);
-
-	if (ret === null) {
-		op = pdForms.formatOperation(op);
-
-		var val = Nette.getEffectiveValue(elem);
-		var arr = Nette.isArray(arg) ? arg.slice(0) : [arg];
-		for (var i = 0, len = arr.length; i < len; i++) {
-			arr[i] = Nette.expandRuleArgument(elem, arr[i]);
-		}
-		return pdForms.validators[op] ? pdForms.validators[op](elem, Nette.isArray(arg) ? arr : arr[0], val) : null;
-	}
-	else {
-		return ret;
-	}
-};
-
-
-/**
  *
  */
 Nette.validateControl = function(elem, rules, onlyCheck) {
@@ -570,7 +605,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
 	}
 
 	// convert arg property in rules into Nette format
-	rules = pdForms.normalizeRulesArg(rules);
+	rules = pdForms.normalizeRules(rules);
 
 	return pdForms.validateControl(elem, rules, onlyCheck);
 };
@@ -581,7 +616,7 @@ Nette.validateControl = function(elem, rules, onlyCheck) {
  */
 Nette.toggleControl = function(elem, rules, success, firsttime, value) {
 	// convert arg property in rules into Nette format
-	rules = pdForms.normalizeRulesArg(rules);
+	rules = pdForms.normalizeRules(rules);
 
 	pdForms.Nette.toggleControl(elem, rules, success, firsttime, value);
 };
