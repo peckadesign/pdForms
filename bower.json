@@ -3,8 +3,7 @@
 	"homepage": "https://github.com/peckadesign/pdForms",
 	"authors": [
 		"PeckaDesign, s.r.o <support@peckadesign.cz>",
-		"Radek Šerý <radek.sery@peckadesign.cz>",
-		"Vít Kutný <vit.kutny@peckadesign.cz>"
+		"Radek Šerý <radek.sery@peckadesign.cz>"
 	],
 	"main": "pdForms.js",
 	"license": "MIT",
