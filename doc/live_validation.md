@@ -14,14 +14,14 @@ var input = document.getElementById('muj_input');
 input.dispatchEvent(new Event('validate'));
 ```
 
-### Vlastní událost spouštění validaci 
+### Vlastní událost pro spuštění validace 
 Pokud chcete validovat formulářové pole při libovolné jiné události (`keyup`, `focusout`, vlastní událost, ...), stačí na formulářový prvek přidat data atribut `data-pdforms-validate-on` obsahující název události. Validační callback se poté naváže i na tuto událost. 
 ```html
 <input id="muj_input" name="muj_input" type="text" data-nette-rules="..." data-pdforms-validate-on="keyup">
 ```
 
 ### Vypisování chyb  
-V případě validační chyby se vypsání chyby řídí několika pravidly. V prvné řadě je možno určit, zda se má chyba vypsat přímo u inputu nebo "globálně" v určeném místě.
+V případě validační chyby se vypsání chyby řídí několika pravidly. V prvné řadě je možno určit, zda se má chyba vypsat přímo u formulářového prvku nebo "globálně" v určeném místě.
 
 #### Vypsání chyby přímo u formulářového prvku
 Toto chování je výchozí, element pro vložení chybové hlášky se hledá v DOM jako nejbližší rodič s class `pdforms-messages--input`, případně jako nejbližší tag `<p>`. Do tohoto prvku je pak vložena validační zpráva v následujícím formátu:
