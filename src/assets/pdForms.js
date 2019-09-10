@@ -292,8 +292,8 @@
 
 					if (typeof payload === 'object' && payload.messageType) {
 						msgType = payload.messageType;
-					} else if (status === 'invalid' && ! isOptional) {
-						msgType = pdForms.constants.MESSAGE_ERROR;
+					} else if (status === 'timeout') {
+						msgType = pdForms.constants.MESSAGE_INFO;
 					} else if (status === 'valid') {
 						msgType = pdForms.constants.MESSAGE_VALID;
 					}
