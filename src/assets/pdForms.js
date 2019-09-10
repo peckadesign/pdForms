@@ -198,12 +198,17 @@
 				};
 			}
 
-			var condition = !!rule.rules;
-			var valid = pdForms.Nette.validateControl(elem, [rule], ! condition || onlyCheck, value, emptyOptional);
+			if (rule.op === 'optional') {
+				emptyOptional = !Nette.validateRule(elem, ':filled', null, value);
+				continue;
+			}
 
-			// if rule is ajax, then do not write any message
+			var isCondition = !!rule.rules;
+			var valid = pdForms.Nette.validateControl(elem, [rule], ! isCondition || onlyCheck, value, emptyOptional);
+
 			if (! rule.isAjax) {
-				if (! onlyCheck) {
+				// write message and add error to form
+				if (! onlyCheck && ! isCondition) {
 					if (! valid) {
 						// if the rule is sync and we have a new message, we need to remove previous messages
 						// (including ajax rules associated); checking for message presence ensures that conditional rules
@@ -212,18 +217,20 @@
 						if (rule.msg.invalid) {
 							pdForms.removeMessages(elem, true);
 						}
+
 						pdForms.addMessage(elem, rule.msg.invalid, rule.isOptional ? pdForms.constants.MESSAGE_INFO : pdForms.constants.MESSAGE_ERROR);
+
+						if (! rule.isOptional) {
+							Nette.addError(elem, rule.msg.invalid);
+						}
 					}
 					else if (rule.msg.valid) {
 						pdForms.addMessage(elem, rule.msg.valid, pdForms.constants.MESSAGE_VALID);
 					}
 				}
 
+				// return value
 				if (! valid && ! rule.isOptional) {
-					if (! onlyCheck) {
-						Nette.addError(elem, rule.msg.invalid);
-					}
-
 					return valid;
 				}
 			}
