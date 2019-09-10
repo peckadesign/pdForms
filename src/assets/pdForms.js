@@ -198,7 +198,8 @@
 				};
 			}
 
-			var valid = pdForms.Nette.validateControl(elem, [rule], onlyCheck, value, emptyOptional);
+			var condition = !!rule.rules;
+			var valid = pdForms.Nette.validateControl(elem, [rule], ! condition || onlyCheck, value, emptyOptional);
 
 			// if rule is ajax, then do not write any message
 			if (! rule.isAjax) {
@@ -219,6 +220,10 @@
 				}
 
 				if (! valid && ! rule.isOptional) {
+					if (! onlyCheck) {
+						Nette.addError(elem, rule.msg.invalid);
+					}
+
 					return valid;
 				}
 			}
@@ -558,17 +563,6 @@
 		rules = pdForms.normalizeRules(rules);
 
 		pdForms.Nette.toggleControl(elem, rules, success, firsttime, value);
-	};
-
-
-	/**
-	 * Messages in pdForms are always object, so we push message.invalid.
-	 */
-	Nette.addError = function(elem, message) {
-		Nette.formErrors.push({
-			element: elem,
-			message: message.invalid
-		});
 	};
 
 
