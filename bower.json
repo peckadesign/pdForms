@@ -5,11 +5,21 @@
 		"PeckaDesign, s.r.o <support@peckadesign.cz>",
 		"Radek Šerý <radek.sery@peckadesign.cz>"
 	],
-	"main": "pdForms.js",
+	"main": "src/assets/pdForms.js",
 	"license": "MIT",
 	"dependencies": {
 		"jquery": ">=1.7",
 		"nette-forms": "~2.4.0",
 		"nette.ajax.js": "^2.0.0"
-	}
+	},
+	"ignore": [
+		"src/DI",
+		"src/Exceptions",
+		"src/Validation",
+		"src/*.php",
+		"tests",
+		"**/.*",
+		"*.json",
+		"*.yml"
+	]
 }
