@@ -2,12 +2,11 @@
 	"name": "pd-forms",
 	"title": "pdForms",
 	"description": "Customization of netteForms for use in PeckaDesign.",
-	"version": "2.0.0",
+	"version": "3.0.0",
 	"author": "PeckaDesign, s.r.o <support@peckadesign.cz>",
 	"contributors": [
 		"Radek Šerý <radek.sery@peckadesign.cz>",
-		"Petr Klobás <petr.klobas@peckadesign.cz>",
-		"Vít Kutný <vit.kutny@peckadesign.cz>"
+		"Petr Klobás <petr.klobas@peckadesign.cz>"
 	],
 	"repository": {
 		"type": "git",
@@ -24,7 +23,8 @@
 	"license": "MIT",
 	"homepage": "https://github.com/peckadesign/pdForms",
 	"dependencies": {
-		"jquery": ">=1.7"
+		"jquery": ">=1.7",
+		"nette-forms": "~2.4.0"
 	},
 	"devDependencies": {}
 }
