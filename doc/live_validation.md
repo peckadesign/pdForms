@@ -10,13 +10,13 @@ Pro použití na webu stačí nalinkovat `netteForms.js`, jednotlivé validátor
 <script src="pdForms.js"></script>
 ```
 
-V tomto základním nastavení se budou formulářové prvky validovat při JS události `change`. Validaci na prvku je možné také vyvolat pomocí vlastní události `validate`, viz příklad:
+V tomto základním nastavení se budou formulářové prvky validovat při JS událostech `change` nebo `focusout` (záleží na typu prvku). Validaci na prvku je možné také vyvolat pomocí vlastní události `validate`, viz příklad:
 ```javascript
 var input = document.getElementById('muj_input');
 input.dispatchEvent(new Event('validate'));
 ```
 
-Pro podporu v IE9+ je potřeba přidat ještě soubor `<script src="pdForms.polyfills.js"></script>`
+Pro podporu v IE9+ je potřeba přidat ještě soubor `<script src="pdForms.polyfills.js"></script>`.
 
 ### Vlastní událost pro spuštění validace 
 Pokud chcete validovat formulářové pole při libovolné jiné události (`keyup`, `focusout`, vlastní událost, ...), stačí na formulářový prvek přidat data atribut `data-pdforms-validate-on` obsahující název události. Validační callback se poté naváže i na tuto událost. 

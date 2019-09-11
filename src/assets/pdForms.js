@@ -623,16 +623,12 @@
 
 			if (! everFocused) {
 				e.target.setAttribute('data-pdforms-ever-focused', true);
-
-				// When tabbing through fields, we want to validate them once even though no change event happend
-				// If change event happened, then ! everFocused would by false in focusout callback
-				if (e.type === 'focusout') {
-					pdForms.liveValidation.call(form, e);
-				}
 			}
 		});
 
-		addDelegatedEventListener(form, 'validate change',   'select, textarea, input:not([type="submit"]):not([type="reset"])', pdForms.liveValidation);
+		addDelegatedEventListener(form, 'validate focusout',        'textarea, input:not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"])', pdForms.liveValidation);
+		addDelegatedEventListener(form, 'validate focusout change', 'select', pdForms.liveValidation);
+		addDelegatedEventListener(form, 'validate change',          'input[type="checkbox"], input[type="radio"]', pdForms.liveValidation);
 
 		// Validation on custom events
 		var pdformsValidateOnArr = Array.prototype.slice.call(form.elements);
