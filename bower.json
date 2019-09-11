@@ -9,7 +9,8 @@
 	"main": "pdForms.js",
 	"license": "MIT",
 	"dependencies": {
-		"jquery": ">=1.7",
-		"nette-forms": "~2.3"
+		"jquery": ">=1.7.0",
+		"nette-forms": "^2.3.0",
+		"nette.ajax.js": "^2.0.0"
 	}
 }

@@ -2,7 +2,7 @@
 	"name": "pd-forms",
 	"title": "pdForms",
 	"description": "Customization of netteForms for use in PeckaDesign.",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"author": "PeckaDesign, s.r.o <support@peckadesign.cz>",
 	"contributors": [
 		"Radek Šerý <radek.sery@peckadesign.cz>",
@@ -24,7 +24,9 @@
 	"license": "MIT",
 	"homepage": "https://github.com/peckadesign/pdForms",
 	"dependencies": {
-		"jquery": ">=1.7"
+		"jquery": ">=1.7.0",
+		"nette-forms": "nette/forms#semver:^2.3.0",
+		"nette.ajax.js": "^2.0.0"
 	},
 	"devDependencies": {}
 }

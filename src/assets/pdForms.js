@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 2.0.0
+ * @version 2.0.1
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -31,7 +31,7 @@ var pdForms = pdForms || {};
 /**
  * Version
  */
-pdForms.version = '2.0.0';
+pdForms.version = '2.0.1';
 
 
 /**
