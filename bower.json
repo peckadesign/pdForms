@@ -9,6 +9,7 @@
 	"license": "MIT",
 	"dependencies": {
 		"jquery": ">=1.7",
-		"nette-forms": "~2.4"
+		"nette-forms": "~2.4.0",
+		"nette.ajax.js": "^2.0.0"
 	}
 }
