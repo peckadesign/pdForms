@@ -1,18 +1,19 @@
 ## Live validace
 
-Pro použití na webu stačí nalinkovat `netteForms.js` a `pdForms.js` a vypnout automatickou inicializaci nette forms.
+Pro použití na webu stačí nalinkovat `netteForms.js` a `pdForms.js`.
 
 ```html
-<script>var Nette = { noInit: true };</script>
 <script src="netteForms.js"></script>
 <script src="pdForms.js"></script>
 ```
 
-V tomto základním nastavení se budou formulářové prvky validovat při JS události `change`. Validaci na prvku je možné také vyvolat pomocí vlastní události `validate`, viz příklad:
+V tomto základním nastavení se budou formulářové prvky validovat při JS událostech `change` nebo `focusout` (záleží na typu prvku). Validaci na prvku je možné také vyvolat pomocí vlastní události `validate`, viz příklad:
 ```javascript
-var input = document.getElementById('muj_input');
-input.dispatchEvent(new Event('validate'));
+var $input = $('#muj_input');
+$input.trigger('validate');
 ```
+
+Všechny události jsou navázané přes jQuery s využitím namespace `pdForms`, tj. např. `validate.pdForms`. Toho lze využít v případě nutnosti odebrání event handleru.
 
 ### Vlastní událost pro spuštění validace 
 Pokud chcete validovat formulářové pole při libovolné jiné události (`keyup`, `focusout`, vlastní událost, ...), stačí na formulářový prvek přidat data atribut `data-pdforms-validate-on` obsahující název události. Validační callback se poté naváže i na tuto událost. 
