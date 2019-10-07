@@ -25,6 +25,17 @@ final class RuleOptionsTest extends \Tester\TestCase
 
 		\Tester\Assert::same(\Nette\Utils\Json::encode(['optional' => TRUE]), \Nette\Utils\Json::encode($optional));
 
+		$netteOptional = $this->ruleOptionsFactory->createNetteOptional('someNetteRule', 'argumentForNetteRule');
+		$netteOptionalExpected = [
+			'optional' => TRUE,
+			'context' => [
+				'netteRule' => 'someNetteRule',
+				'netteRuleArgs' => 'argumentForNetteRule',
+			],
+		];
+
+		\Tester\Assert::same(\Nette\Utils\Json::encode($netteOptionalExpected), \Nette\Utils\Json::encode($netteOptional));
+
 		$required = $this->ruleOptionsFactory->createRequired()
 			->enableAjax('http://ajaxValidationTarget.pecka', $this->validationService)
 			->addValidationMessage('first', 'message')
