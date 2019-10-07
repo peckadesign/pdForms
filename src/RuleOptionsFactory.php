@@ -4,6 +4,9 @@ namespace Pd\Forms;
 
 final class RuleOptionsFactory
 {
+	private const NETTE_RULE = 'netteRule';
+	private const NETTE_RULE_ARGS = 'netteRuleArgs';
+
 	/**
 	 * @var \Nette\Localization\ITranslator
 	 */
@@ -26,5 +29,25 @@ final class RuleOptionsFactory
 	public function createRequired(): \Pd\Forms\RuleOptions
 	{
 		return new \Pd\Forms\RuleOptions($this->translator, FALSE);
+	}
+
+
+	public function createNetteOptional(string $netteRule, $ruleArguments = NULL): \Pd\Forms\RuleOptions
+	{
+		$options = new \Pd\Forms\RuleOptions($this->translator, TRUE);
+
+		$options->addContext(self::NETTE_RULE, $netteRule);
+
+		if ($ruleArguments !== NULL) {
+			if ( ! \is_scalar($ruleArguments) && ! \is_array($ruleArguments)) {
+				throw new \InvalidArgumentException(
+					\sprintf('Arguments for optional Nette rule must be scalar or array, %s given', \gettype($ruleArguments))
+				);
+			}
+
+			$options->addContext(self::NETTE_RULE_ARGS, $ruleArguments);
+		}
+
+		return $options;
 	}
 }

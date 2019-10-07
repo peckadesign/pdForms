@@ -13,3 +13,4 @@ Knihovna poskytuje nástroje, pomocí kterých je možné zaregistrovat vlastní
 - [Vlastní pravidla, měkká validace a validační kontext](custom_rules.md)
 - [Je libo AJAX?](ajax.md)
 - [AJAX s JS callbackem, závilost na více formulářových polích](ajax_dependent_inputs.md)
+- [Měkká validace pomocí dostupných Nette validátorů](nette_optional.md)
