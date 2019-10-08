@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 2.0.1
+ * @version 2.0.2
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -31,7 +31,7 @@ var pdForms = pdForms || {};
 /**
  * Version
  */
-pdForms.version = '2.0.1';
+pdForms.version = '2.0.2';
 
 
 /**
@@ -519,6 +519,12 @@ Nette.validators.PdFormsRules_containsNumber = function(elem, arg, val) {
 
 Nette.validators.PdFormsRules_phone = function(elem, arg, val) {
 	return Nette.validators.regexp(elem, String(/^\+[0-9]{3} ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/), val);
+};
+
+Nette.validators.PdFormsRules_netteRuleProxy = function(elem, arg, val) {
+	var validator = pdForms.formatOperation(arg.context.netteRule);
+
+	return validator in Nette.validators ? Nette.validators[validator](elem, arg.context.netteRuleArgs, val) : true;
 };
 
 Nette.validators.PdFormsRules_ajax = function(elem, arg, val, value, callback) {
