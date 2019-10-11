@@ -4,7 +4,7 @@
  * @author Radek Šerý <radek.sery@peckadesign.cz>
  * @author Vít Kutný <vit.kutny@peckadesign.cz>
  *
- * @version 2.0.1
+ * @version 2.0.2
  *
  * - adds custom validation rules for optional rule (non-blocking errors, form can be still submitted)
  * - changes some netteForms methods
@@ -31,7 +31,7 @@ var pdForms = pdForms || {};
 /**
  * Version
  */
-pdForms.version = '2.0.1';
+pdForms.version = '2.0.2';
 
 
 /**
@@ -139,15 +139,21 @@ pdForms.validateInput = function(e, $inputs) {
 
 	$validate.each(function() {
 		if ($(this).data('ever-focused')) {
-			// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
-			var ret = Nette.validateControl(this);
+			// assumes the input is valid, therefore removing all messages except those associated with ajax rules; this
+			// prevents flashing of message, when ajax rule is evaluated - ajax rules removes their messages when the ajax
+			// rule is evaluated
+			pdForms.removeMessages(this, false);
 
 			var rules = Nette.parseJSON(this.getAttribute('data-nette-rules'));
 			rules = pdForms.normalizeRules(rules);
+
+			// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
+			var valid = Nette.validateControl(this, rules);
+
 			var hasAjaxRule = pdForms.hasAjaxRule(rules);
 
 			// has to be here and not inside validateControl as it should add ok class only if whole input is valid (not only parts of condional rule etc.)
-			if (ret && ! hasAjaxRule) {
+			if (valid && ! hasAjaxRule) {
 				// add pdforms-valid class name if the input is valid
 				pdForms.addMessage(this, null, pdForms.constants.OK_MESSAGE);
 			}
@@ -160,13 +166,6 @@ pdForms.validateInput = function(e, $inputs) {
  * Validates form element using optional nette-rules.
  */
 pdForms.validateControl = function(elem, rules, onlyCheck) {
-	// assumes the input is valid, therefore removing all messages except those associated with ajax rules; this
-	// prevents flashing of message, when ajax rule is evaluated - ajax rules removes their messages when the ajax
-	// rule is evaluated; when onlyCheck is true, we dont' want to modify DOM at all
-	if (! onlyCheck) {
-		pdForms.removeMessages(elem, false);
-	}
-
 	// validate rules one-by-one to know which passed
 	for (var id = 0, len = rules.length; id < len; id++) {
 		var rule = rules[id];
@@ -521,6 +520,12 @@ Nette.validators.PdFormsRules_phone = function(elem, arg, val) {
 	return Nette.validators.regexp(elem, String(/^\+[0-9]{3} ?[1-9][0-9]{2} ?[0-9]{3} ?[0-9]{3}$/), val);
 };
 
+Nette.validators.PdFormsRules_netteRuleProxy = function(elem, arg, val) {
+	var validator = pdForms.formatOperation(arg.context.netteRule);
+
+	return validator in Nette.validators ? Nette.validators[validator](elem, arg.context.netteRuleArgs, val) : true;
+};
+
 Nette.validators.PdFormsRules_ajax = function(elem, arg, val, value, callback) {
 	if (typeof callback === 'undefined') {
 		callback = 'PdFormsRules_ajax';
@@ -593,19 +598,21 @@ Nette.addEvent = function(element, on, callback) {
  *
  */
 Nette.validateControl = function(elem, rules, onlyCheck) {
-
 	if (!elem.nodeName) { // RadioNodeList
 		elem = elem[0];
 	}
-	rules = rules || Nette.parseJSON(elem.getAttribute('data-nette-rules'));
+
+	if (! rules) {
+		rules = Nette.parseJSON(elem.getAttribute('data-nette-rules'));
+
+		// convert arg property in rules into Nette format
+		rules = pdForms.normalizeRules(rules);
+	}
 
 	// no rules -> skip element validation
 	if (rules.length === 0) {
 		return true;
 	}
-
-	// convert arg property in rules into Nette format
-	rules = pdForms.normalizeRules(rules);
 
 	return pdForms.validateControl(elem, rules, onlyCheck);
 };
