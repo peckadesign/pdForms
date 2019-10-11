@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.0.0
+ * @version 3.0.1
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.0.0';
+	pdForms.version = '3.0.1';
 
 
 	/**
@@ -156,14 +156,20 @@
 
 		validate.forEach(function(elem) {
 			if (elem.getAttribute('data-pdforms-ever-focused')) {
-				// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
-				var ret = Nette.validateControl(elem);
+				// assumes the input is valid, therefore removing all messages except those associated with ajax rules; this
+				// prevents flashing of message, when ajax rule is evaluated - ajax rules removes their messages when the ajax
+				// rule is evaluated
+				pdForms.removeMessages(elem, false);
+
 				var rules = Nette.parseJSON(elem.getAttribute('data-nette-rules'));
 				rules = pdForms.normalizeRules(rules);
+
+				// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
+				var valid = Nette.validateControl(elem, rules);
 				var hasAjaxRule = pdForms.hasAjaxRule(rules);
 
 				// has to be here and not inside validateControl as it should add ok class only if whole input is valid (not only parts of condional rule etc.)
-				if (ret && ! hasAjaxRule) {
+				if (valid && ! hasAjaxRule) {
 					// add pdforms-valid class name if the input is valid
 					pdForms.addMessage(elem, null, pdForms.constants.MESSAGE_VALID);
 				}
@@ -176,13 +182,6 @@
 	 * Validates form element using optional nette-rules.
 	 */
 	pdForms.validateControl = function(elem, rules, onlyCheck, value, emptyOptional) {
-		// assumes the input is valid, therefore removing all messages except those associated with ajax rules; this
-		// prevents flashing of message, when ajax rule is evaluated - ajax rules removes their messages when the ajax
-		// rule is evaluated; when onlyCheck is true, we dont' want to modify DOM at all
-		if (! onlyCheck) {
-			pdForms.removeMessages(elem, false);
-		}
-
 		// validate rules one-by-one to know which passed
 		for (var id = 0, len = rules.length; id < len; id++) {
 			var rule = rules[id];
@@ -548,15 +547,18 @@
 	 */
 	Nette.validateControl = function(elem, rules, onlyCheck, value, emptyOptional) {
 		elem = elem.tagName ? elem : elem[0]; // RadioNodeList
-		rules = rules || Nette.parseJSON(elem.getAttribute('data-nette-rules'));
+
+		if (! rules) {
+			rules = Nette.parseJSON(elem.getAttribute('data-nette-rules'));
+
+			// convert arg property in rules into Nette format
+			rules = pdForms.normalizeRules(rules);
+		}
 
 		// no rules -> skip element validation
 		if (rules.length === 0) {
 			return true;
 		}
-
-		// convert arg property in rules into Nette format
-		rules = pdForms.normalizeRules(rules);
 
 		return pdForms.validateControl(elem, rules, onlyCheck, value, emptyOptional);
 	};

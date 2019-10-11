@@ -24,6 +24,12 @@ final class RuleOptionsFactoryTest extends \Tester\TestCase
 		$required = $this->ruleOptionsFactory->createRequired();
 
 		\Tester\Assert::false($required->isOptional());
+
+		$netteOptional = $this->ruleOptionsFactory->createNetteOptional('someNetteRule', 'argumentForNetteRule');
+
+		\Tester\Assert::true($netteOptional->isOptional());
+		\Tester\Assert::same('someNetteRule', $netteOptional->getContext('netteRule'));
+		\Tester\Assert::same('argumentForNetteRule', $netteOptional->getContext('netteRuleArgs'));
 	}
 
 

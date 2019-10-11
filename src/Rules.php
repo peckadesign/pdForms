@@ -5,6 +5,8 @@ namespace Pd\Forms;
 final class Rules
 {
 	public const AJAX = self::class . '::ajax';
+	public const NETTE_RULE_PROXY = self::class . '::netteRuleProxy';
+
 	public const PHONE = self::class . '::phone';
 	public const CONTAINS_NUMBER = self::class . '::containsNumber';
 	public const NO_EXTERNAL_SOURCES = self::class . '::noExternalSources';
@@ -30,7 +32,7 @@ final class Rules
 			->validateInput($control->getValue(), $options->getNormalizedDependentInputs());
 
 		if ($validationResult->getStatus() === \Pd\Forms\RuleOptions::STATUS_TIMEOUT) {
-			return TRUE; // externí služba není dostupná, formulář musí projít
+			return TRUE;
 		}
 
 		if ( ! $validationResult->isValid()) {
@@ -44,6 +46,15 @@ final class Rules
 			return FALSE;
 		}
 
+		return TRUE;
+	}
+
+
+	/**
+	 * Rule is never validated on backend, used for proxying nette rules as optional only
+	 */
+	public static function netteRuleProxy(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	{
 		return TRUE;
 	}
 
