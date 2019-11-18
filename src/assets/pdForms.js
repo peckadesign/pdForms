@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.0.1
+ * @version 3.0.2
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.0.1';
+	pdForms.version = '3.0.2';
 
 
 	/**
@@ -357,7 +357,7 @@
 					var ev = document.createEvent('Event');
 					ev.initEvent('change', true, true);
 
-					input.value = payload[inputId];
+					input.value = payload.dependentInputs[inputId];
 					input.dispatchEvent(ev);
 				}
 			}
