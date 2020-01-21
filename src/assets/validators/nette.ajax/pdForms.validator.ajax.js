@@ -7,6 +7,12 @@
 (function() {
 
 	Nette.validators.PdFormsRules_ajax = function(elem, arg, val, value, callback) {
+		// In case of $.nette.ajax being undefined, do not validate. This may happen on page load when Nette.initForm
+		// is called.
+		if (! $ || ! $.nette || ! $.nette.ajax) {
+			return true;
+		}
+
 		if (typeof callback === 'undefined') {
 			callback = 'PdFormsRules_ajax';
 		}
