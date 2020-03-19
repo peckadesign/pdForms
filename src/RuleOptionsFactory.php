@@ -32,6 +32,10 @@ final class RuleOptionsFactory
 	}
 
 
+	/**
+	 * @param string $netteRule
+	 * @param mixed|null $ruleArguments
+	 */
 	public function createNetteOptional(string $netteRule, $ruleArguments = NULL): \Pd\Forms\RuleOptions
 	{
 		$options = new \Pd\Forms\RuleOptions($this->translator, TRUE);

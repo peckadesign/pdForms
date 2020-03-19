@@ -2,11 +2,14 @@ language: php
 
 php:
     - 7.1
+    - 7.2
+    - 7.3
+    - 7.4
 
 script:
     - vendor/bin/phpcs src/ tests/ --ignore="assets/*" --standard=vendor/pd/coding-standard/src/PeckaCodingStandard/ruleset.xml
     - vendor/bin/phpcs src/ tests/ --ignore="assets/*" --standard=vendor/pd/coding-standard/src/PeckaCodingStandardStrict/ruleset.xml
-    - vendor/bin/phpstan analyse --level 7 src/
+    - vendor/bin/phpstan analyse --level 8 src/
     - vendor/bin/tester tests/
 
 before_script:

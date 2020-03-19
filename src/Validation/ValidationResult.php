@@ -15,7 +15,7 @@ final class ValidationResult implements \JsonSerializable
 	private $status;
 
 	/**
-	 * @var array
+	 * @var array<mixed>
 	 */
 	private $dependentInputs;
 
@@ -44,6 +44,10 @@ final class ValidationResult implements \JsonSerializable
 	}
 
 
+	/**
+	 * @param string $name
+	 * @param mixed $value
+	 */
 	public function addDependentInput(string $name, $value): void
 	{
 		$this->dependentInputs[$name] = $value;
@@ -62,6 +66,9 @@ final class ValidationResult implements \JsonSerializable
 	}
 
 
+	/**
+	 * @return array<mixed>
+	 */
 	public function jsonSerialize()
 	{
 		$valid = [
