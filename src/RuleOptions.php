@@ -15,7 +15,7 @@ final class RuleOptions implements \JsonSerializable
 	public const MESSAGE_VALID = 'valid';
 
 	/**
-	 * @var array
+	 * @var array<string|null>
 	 */
 	private $validationMessages = [
 		self::STATUS_INVALID => NULL,
@@ -44,12 +44,12 @@ final class RuleOptions implements \JsonSerializable
 	private $validationService;
 
 	/**
-	 * @var array
+	 * @var \Nette\Forms\Controls\BaseControl[]
 	 */
 	private $dependentInputCollection = [];
 
 	/**
-	 * @var array
+	 * @var array<mixed>
 	 */
 	private $contextStorage = [];
 
@@ -80,6 +80,14 @@ final class RuleOptions implements \JsonSerializable
 		$this->validationService = $validationService;
 
 		return $this;
+	}
+
+
+	private function checkValidationState(?\Pd\Forms\Validation\ValidationServiceInterface $validationService = NULL): void
+	{
+		if ( ! $this->optional && $validationService === NULL) {
+			throw new \RuntimeException('Validation service must be defined for required rule');
+		}
 	}
 
 
@@ -123,6 +131,7 @@ final class RuleOptions implements \JsonSerializable
 	/**
 	 * @param string $name
 	 * @param mixed $context
+	 *
 	 * @throws \Pd\Forms\Exceptions\InvalidKeyException
 	 */
 	public function addContext(string $name, $context): self
@@ -163,6 +172,9 @@ final class RuleOptions implements \JsonSerializable
 	}
 
 
+	/**
+	 * @return array<mixed>
+	 */
 	public function getNormalizedDependentInputs(): array
 	{
 		return \array_map(static function (\Nette\Forms\Controls\BaseControl $control): array {
@@ -174,6 +186,9 @@ final class RuleOptions implements \JsonSerializable
 	}
 
 
+	/**
+	 * @return array<mixed>
+	 */
 	public function jsonSerialize()
 	{
 		$serialized = [
@@ -207,13 +222,5 @@ final class RuleOptions implements \JsonSerializable
 		}
 
 		return $serialized;
-	}
-
-
-	private function checkValidationState(?\Pd\Forms\Validation\ValidationServiceInterface $validationService = NULL): void
-	{
-		if ( ! $this->optional && $validationService === NULL) {
-			throw new \RuntimeException('Validation service must be defined for required rule');
-		}
 	}
 }
