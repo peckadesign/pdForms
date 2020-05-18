@@ -11,5 +11,9 @@ final class PdFormsExtension extends \Nette\DI\CompilerExtension
 		$builder->addDefinition($this->prefix('ruleOptionsFactory'))
 			->setFactory(\Pd\Forms\RuleOptionsFactory::class)
 		;
+
+		$builder->addDefinition($this->prefix('invisibleReCaptchaInputFactory'))
+			->setFactory(\Pd\Forms\InvisibleReCaptcha\InvisibleReCaptchaInputFactory::class)
+		;
 	}
 }
