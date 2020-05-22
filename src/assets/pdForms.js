@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.0.5
+ * @version 3.0.7
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.0.5';
+	pdForms.version = '3.0.7';
 
 
 	/**
@@ -614,19 +614,24 @@
 
 
 	/**
+	 * Setting flag that input has been focused, so we won't notify about errors in fields user has not yet filled
+	 */
+	var setEverFocused = function(e) {
+		var everFocused = e.target.getAttribute('data-pdforms-ever-focused');
+
+		if (! everFocused) {
+			e.target.setAttribute('data-pdforms-ever-focused', true);
+		}
+	}
+
+
+	/**
 	 * Setup handlers.
 	 */
 	Nette.initForm = function (form) {
 		pdForms.Nette.initForm(form);
 
-		// Setting flag that input has been focused, so we won't notify about errors in fields user has not yet filled
-		addDelegatedEventListener(form, 'focusout change', 'select, textarea, input:not([type="submit"]):not([type="reset"])', function(e) {
-			var everFocused = e.target.getAttribute('data-pdforms-ever-focused');
-
-			if (! everFocused) {
-				e.target.setAttribute('data-pdforms-ever-focused', true);
-			}
-		});
+		addDelegatedEventListener(form, 'focusout change', 'select, textarea, input:not([type="submit"]):not([type="reset"])', setEverFocused);
 
 		addDelegatedEventListener(form, 'validate focusout',        'textarea, input:not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"])', pdForms.liveValidation);
 		addDelegatedEventListener(form, 'validate focusout change', 'select', pdForms.liveValidation);
@@ -645,6 +650,8 @@
 
 				form.addEventListener(eventName, function(e) {
 					if (e.target === el) {
+						setEverFocused(e);
+
 						pdForms.liveValidation.call(form, e);
 					}
 				})
