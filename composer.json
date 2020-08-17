@@ -22,6 +22,7 @@
 		"ext-json": "*",
 		"nette/application": "~2.4",
 		"nette/forms": "~2.4",
+		"contributte/recaptcha": "3.1.*",
 		"nette/di": "~2.4",
 		"nette/utils": "~2.4",
 		"pd/utils": "^1.0"
