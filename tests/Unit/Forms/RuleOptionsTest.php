@@ -127,12 +127,23 @@ final class RuleOptionsTest extends \Tester\TestCase
 	{
 		parent::setUp();
 
-		$translator = new class() implements \Nette\Localization\ITranslator {
-			public function translate($message, $count = NULL)
-			{
-				return $message;
-			}
-		};
+		if (\interface_exists(\Nette\Schema\Schema::class)) { //nette 3.0
+			$translator = new class() implements \Nette\Localization\ITranslator {
+				function translate($message, ...$parameters): string
+				{
+					return $message;
+				}
+			};
+		} else {
+			$translator = new class() implements \Nette\Localization\ITranslator {
+				public function translate($message, $count = NULL)
+				{
+					return $message;
+				}
+			};
+		}
+
+
 
 		$this->ruleOptionsFactory = new \Pd\Forms\RuleOptionsFactory($translator);
 
