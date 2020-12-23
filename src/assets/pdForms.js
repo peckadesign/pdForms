@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.1.0
+ * @version 3.2.1
  *
  * Features:
  * - live validation
