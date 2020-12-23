@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.1.0';
+	pdForms.version = '3.2.1';
 
 
 	/**
@@ -161,7 +161,7 @@
 				// rule is evaluated
 				pdForms.removeMessages(elem, false);
 
-				var rules = Nette.parseJSON(elem.getAttribute('data-nette-rules'));
+				var rules = JSON.parse(elem.getAttribute('data-nette-rules') || '[]');
 				rules = pdForms.normalizeRules(rules);
 
 				// validate control using nette-rules && pd-rules (which are inside nette-rules actually)
@@ -549,7 +549,7 @@
 		elem = elem.tagName ? elem : elem[0]; // RadioNodeList
 
 		if (! rules) {
-			rules = Nette.parseJSON(elem.getAttribute('data-nette-rules'));
+			rules = JSON.parse(elem.getAttribute('data-nette-rules') || '[]');
 
 			// convert arg property in rules into Nette format
 			rules = pdForms.normalizeRules(rules);
