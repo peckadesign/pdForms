@@ -14,11 +14,16 @@ class InvisibleReCaptchaInput extends \Contributte\ReCaptcha\Forms\ReCaptchaFiel
 	 */
 	private $form;
 
+	/**
+	 * @var \Pd\Forms\Versioning\Provider
+	 */
+	private $versioningProvider;
+
 
 	/**
 	 * @param \Contributte\ReCaptcha\ReCaptchaProvider $provider
 	 */
-	public function __construct(\Contributte\ReCaptcha\ReCaptchaProvider $provider, \Nette\Application\UI\Form $form, string $errorMessage)
+	public function __construct(\Contributte\ReCaptcha\ReCaptchaProvider $provider, \Nette\Application\UI\Form $form, string $errorMessage, \Pd\Forms\Versioning\Provider $versioningProvider)
 	{
 		parent::__construct($provider);
 		
@@ -27,6 +32,7 @@ class InvisibleReCaptchaInput extends \Contributte\ReCaptcha\Forms\ReCaptchaFiel
 
 		$this->provider = $provider;
 		$this->form = $form;
+		$this->versioningProvider = $versioningProvider;
 	}
 
 	/**
@@ -65,7 +71,7 @@ class InvisibleReCaptchaInput extends \Contributte\ReCaptcha\Forms\ReCaptchaFiel
 	{
 		$script = \Nette\Utils\Html::el('script', [
 			'type' => 'text/javascript',
-			'src' => '/js/pdForms.recaptcha.min.js',
+			'src' => $this->versioningProvider->generatePathWithVersion('/js/pdForms.recaptcha.min.js'),
 		])->setHtml('');
 
 		return $script;
