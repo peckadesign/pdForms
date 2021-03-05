@@ -4,15 +4,10 @@ namespace Pd\Forms\InvisibleReCaptcha;
 
 class InvisibleReCaptchaInputFactory
 {
-	/**
-	 * @var \Contributte\ReCaptcha\ReCaptchaProvider
-	 */
-	private $reCaptchaProvider;
 
-	/**
-	 * @var \Pd\Forms\Versioning\Provider
-	 */
-	private $versioningProvider;
+	private \Contributte\ReCaptcha\ReCaptchaProvider $reCaptchaProvider;
+
+	private \Pd\Forms\Versioning\Provider $versioningProvider;
 
 
 	public function __construct(

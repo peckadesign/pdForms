@@ -9,15 +9,11 @@ require __DIR__ . '/../../bootstrap.php';
  */
 final class RuleOptionsTest extends \Tester\TestCase
 {
-	/**
-	 * @var \Pd\Forms\RuleOptionsFactory
-	 */
-	private $ruleOptionsFactory;
 
-	/**
-	 * @var \Pd\Forms\Validation\ValidationServiceInterface $validationService;
-	 */
-	private $validationService;
+	private \Pd\Forms\RuleOptionsFactory $ruleOptionsFactory;
+
+	private \Pd\Forms\Validation\ValidationServiceInterface $validationService;
+
 
 	public function testSerialization(): void
 	{
@@ -56,11 +52,13 @@ final class RuleOptionsTest extends \Tester\TestCase
 		$required->addContext('gimme', 'fuel')
 			->addContext('gimme 2', ['fuel', 'fire'])
 			->addContext('class', new class () implements \JsonSerializable {
+
 				public function jsonSerialize()
 				{
 					return ['serialized' => 'class'];
 				}
-			});
+
+});
 
 		$serialized = \Nette\Utils\Json::encode($required);
 		$expected = \Nette\Utils\Json::encode([
@@ -118,7 +116,9 @@ final class RuleOptionsTest extends \Tester\TestCase
 		\Tester\Assert::same(['fuel', 'fire'], $optional->getContext('gimme 2'));
 
 		\Tester\Assert::throws(static function () use ($optional): void {
-			$optional->addContext('class', new class () {});
+			$optional->addContext('class', new class () {
+
+});
 		}, \InvalidArgumentException::class);
 	}
 
@@ -129,30 +129,34 @@ final class RuleOptionsTest extends \Tester\TestCase
 
 		if (\interface_exists(\Nette\Schema\Schema::class)) { //nette 3.0
 			$translator = new class() implements \Nette\Localization\ITranslator {
+
 				function translate($message, ...$parameters): string
 				{
 					return $message;
 				}
-			};
+
+};
 		} else {
 			$translator = new class() implements \Nette\Localization\ITranslator {
+
 				public function translate($message, $count = NULL)
 				{
 					return $message;
 				}
-			};
+
+};
 		}
-
-
 
 		$this->ruleOptionsFactory = new \Pd\Forms\RuleOptionsFactory($translator);
 
 		$this->validationService = new class() implements \Pd\Forms\Validation\ValidationServiceInterface {
+
 			public function validateInput($value, array $dependentInputs = []): \Pd\Forms\Validation\ValidationResult
 			{
 				return new \Pd\Forms\Validation\ValidationResult((bool) \strlen((string) $value));
 			}
-		};
+
+};
 	}
 
 
@@ -162,6 +166,7 @@ final class RuleOptionsTest extends \Tester\TestCase
 
 		\Mockery::close();
 	}
+
 }
 
 (new \PdTests\Unit\Forms\RuleOptionsTest())->run();

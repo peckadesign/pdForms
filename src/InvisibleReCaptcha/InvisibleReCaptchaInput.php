@@ -4,20 +4,12 @@ namespace Pd\Forms\InvisibleReCaptcha;
 
 class InvisibleReCaptchaInput extends \Contributte\ReCaptcha\Forms\ReCaptchaField
 {
-	/**
-	 * @var \Contributte\ReCaptcha\ReCaptchaProvider
-	 */
-	private $provider;
 
-	/**
-	 * @var \Nette\Application\UI\Form
-	 */
-	private $form;
+	private \Contributte\ReCaptcha\ReCaptchaProvider $provider;
 
-	/**
-	 * @var \Pd\Forms\Versioning\Provider
-	 */
-	private $versioningProvider;
+	private \Nette\Application\UI\Form $form;
+
+	private \Pd\Forms\Versioning\Provider $versioningProvider;
 
 
 	/**
@@ -26,7 +18,7 @@ class InvisibleReCaptchaInput extends \Contributte\ReCaptcha\Forms\ReCaptchaFiel
 	public function __construct(\Contributte\ReCaptcha\ReCaptchaProvider $provider, \Nette\Application\UI\Form $form, string $errorMessage, \Pd\Forms\Versioning\Provider $versioningProvider)
 	{
 		parent::__construct($provider);
-		
+
 		$this->setMessage($errorMessage);
 		$this->setRequired();
 
@@ -34,6 +26,7 @@ class InvisibleReCaptchaInput extends \Contributte\ReCaptcha\Forms\ReCaptchaFiel
 		$this->form = $form;
 		$this->versioningProvider = $versioningProvider;
 	}
+
 
 	/**
 	 * @return \Nette\Utils\Html<\Nette\Utils\Html|string>
@@ -53,6 +46,7 @@ class InvisibleReCaptchaInput extends \Contributte\ReCaptcha\Forms\ReCaptchaFiel
 
 		return $container;
 	}
+
 
 	/**
 	 * @param string|object $caption

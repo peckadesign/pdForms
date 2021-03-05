@@ -4,13 +4,12 @@ namespace Pd\Forms;
 
 final class RuleOptionsFactory
 {
+
 	private const NETTE_RULE = 'netteRule';
 	private const NETTE_RULE_ARGS = 'netteRuleArgs';
 
-	/**
-	 * @var \Nette\Localization\ITranslator
-	 */
-	private $translator;
+
+	private \Nette\Localization\ITranslator $translator;
 
 
 	public function __construct(
@@ -54,4 +53,5 @@ final class RuleOptionsFactory
 
 		return $options;
 	}
+
 }

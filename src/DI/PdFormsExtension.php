@@ -4,6 +4,7 @@ namespace Pd\Forms\DI;
 
 final class PdFormsExtension extends \Nette\DI\CompilerExtension
 {
+
 	public function loadConfiguration(): void
 	{
 		$builder = $this->getContainerBuilder();
@@ -19,4 +20,5 @@ final class PdFormsExtension extends \Nette\DI\CompilerExtension
 		$builder->addDefinition($this->prefix('versioningProvider'))
 			->setFactory(\Pd\Forms\Versioning\DummyProvider::class);
 	}
+
 }

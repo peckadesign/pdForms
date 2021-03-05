@@ -4,6 +4,7 @@ namespace Pd\Forms\Validation;
 
 abstract class AbstractValidationController extends \Nette\Application\UI\Presenter implements \Pd\Forms\Validation\ValidationControllerInterface
 {
+
 	public function actionDefault($inputValue = NULL, array $dependentInputs = []): void
 	{
 		if ( ! $inputValue) {
@@ -14,4 +15,5 @@ abstract class AbstractValidationController extends \Nette\Application\UI\Presen
 
 		$this->sendJson($validationResult);
 	}
+
 }

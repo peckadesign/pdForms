@@ -9,6 +9,7 @@ require __DIR__ . '/../../bootstrap.php';
  */
 final class ValidationResultTest extends \Tester\TestCase
 {
+
 	public function testSerialization(): void
 	{
 		$validationResult = new \Pd\Forms\Validation\ValidationResult(TRUE);
@@ -41,6 +42,7 @@ final class ValidationResultTest extends \Tester\TestCase
 
 		\Tester\Assert::same(\Nette\Utils\Json::encode($expected), \Nette\Utils\Json::encode($validationResult));
 	}
+
 }
 
 (new \PdTests\Unit\Forms\ValidationResultTest())->run();
