@@ -84,7 +84,7 @@ ValidationPresenter:
 
 namespace App\ApiModule\FrontModule;
 
-class CheckZipPresenter extends \Pd\Forms\Validation\ValidationController
+class CheckZipPresenter extends \Pd\Forms\Validation\AbstractValidationController
 {
 	/**
 	 * @var \App\ZipModule\ZipCode\ZipCodeService
