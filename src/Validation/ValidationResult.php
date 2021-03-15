@@ -16,6 +16,8 @@ final class ValidationResult implements \JsonSerializable
 
 	private string $messageType = '';
 
+	private ?string $message = NULL;
+
 
 	public function __construct(bool $valid, ?string $status = NULL)
 	{
@@ -58,6 +60,18 @@ final class ValidationResult implements \JsonSerializable
 	}
 
 
+	public function getMessage(): ?string
+	{
+		return $this->message;
+	}
+
+
+	public function setMessage(?string $message): void
+	{
+		$this->message = $message;
+	}
+
+
 	/**
 	 * @return array<mixed>
 	 */
@@ -71,6 +85,7 @@ final class ValidationResult implements \JsonSerializable
 			'status' => $this->status,
 			'messageType' => $this->messageType,
 			'dependentInputs' => $this->dependentInputs,
+			'message' => $this->message,
 		];
 
 		return $valid + \array_filter($rest);
