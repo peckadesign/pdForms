@@ -298,21 +298,24 @@
 				// remove old messages, only when onlyCheck is false
 				pdForms.removeMessages(elem, true);
 
-				if (status in msg && msg[status]) {
-					var msgType = pdForms.constants.MESSAGE_ERROR;
+				var msgType = pdForms.constants.MESSAGE_ERROR;
 
-					if (typeof payload === 'object' && payload.messageType) {
-						msgType = payload.messageType;
-					} else if (status === 'timeout') {
-						msgType = pdForms.constants.MESSAGE_INFO;
-					} else if (status === 'valid') {
-						msgType = pdForms.constants.MESSAGE_VALID;
-					}
+				if (typeof payload === 'object' && payload.messageType) {
+					msgType = payload.messageType;
+				} else if (status === 'timeout') {
+					msgType = pdForms.constants.MESSAGE_INFO;
+				} else if (status === 'valid') {
+					msgType = pdForms.constants.MESSAGE_VALID;
+				}
 
-					if (isOptional && msgType === pdForms.constants.MESSAGE_ERROR) {
-						msgType = pdForms.constants.MESSAGE_INFO;
-					}
+				if (isOptional && msgType === pdForms.constants.MESSAGE_ERROR) {
+					msgType = pdForms.constants.MESSAGE_INFO;
+				}
 
+				if(typeof payload === 'object' && payload.message) {
+					pdForms.addMessage(elem, payload.message, msgType, true, false);
+				}
+				else if (status in msg && msg[status]) {
 					pdForms.addMessage(elem, msg[status], msgType, true);
 				}
 				else if (status === 'valid') {
@@ -409,7 +412,7 @@
 	 * Using data-pdforms-messages-tagname we could change the default span (p in case of global messages) element.
 	 * Using data-pdforms-messages-global on elem we could force the message to be displayed in global message placeholder.
 	 */
-	pdForms.addMessage = function(elem, message, type, isAjaxRuleMessage) {
+	pdForms.addMessage = function(elem, message, type, isAjaxRuleMessage, escapeMessage) {
 		var placeholder = pdForms.getMessagePlaceholder(elem);
 
 		if (! placeholder.elem) {
@@ -441,7 +444,12 @@
 			className = (tagName === 'p') ? 'message message--' + type : className;
 
 			var msg = document.createElement(tagName);
-			msg.textContent = message;
+			if(escapeMessage === undefined || escapeMessage) {
+				msg.textContent = message;
+			}
+			else {
+				msg.innerHTML = message;
+			}
 			msg.setAttribute('class', className + ' pdforms-message');
 			msg.setAttribute('data-elem', elem.name);
 
