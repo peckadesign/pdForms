@@ -312,13 +312,11 @@
 					msgType = pdForms.constants.MESSAGE_INFO;
 				}
 
-				if(typeof payload === 'object' && payload.message) {
+				if (typeof payload === 'object' && payload.message) {
 					pdForms.addMessage(elem, payload.message, msgType, true, false);
-				}
-				else if (status in msg && msg[status]) {
+				} else if (status in msg && msg[status]) {
 					pdForms.addMessage(elem, msg[status], msgType, true);
-				}
-				else if (status === 'valid') {
+				} else if (status === 'valid') {
 					// add pdforms-valid class name if the input is valid and no message is specified
 					pdForms.addMessage(elem, null, pdForms.constants.MESSAGE_VALID, true);
 				}
@@ -357,14 +355,19 @@
 				var input = document.getElementById(inputId);
 
 				if (input && ! input.value) {
-					var ev = document.createEvent('Event');
-					ev.initEvent('change', true, true);
-
-					input.value = payload.dependentInputs[inputId];
-					input.dispatchEvent(ev);
+					pdForms.setInputValue(input, payload.dependentInputs[inputId]);
 				}
 			}
 		}
+	};
+
+
+	pdForms.setInputValue = function (elem, value) {
+		var ev = document.createEvent('Event');
+		ev.initEvent('change', true, true);
+
+		elem.value = value;
+		elem.dispatchEvent(ev);
 	};
 
 
@@ -444,12 +447,13 @@
 			className = (tagName === 'p') ? 'message message--' + type : className;
 
 			var msg = document.createElement(tagName);
-			if(escapeMessage === undefined || escapeMessage) {
+
+			if (typeof escapeMessage === 'undefined' || escapeMessage) {
 				msg.textContent = message;
-			}
-			else {
+			} else {
 				msg.innerHTML = message;
 			}
+
 			msg.setAttribute('class', className + ' pdforms-message');
 			msg.setAttribute('data-elem', elem.name);
 
@@ -459,6 +463,8 @@
 
 			if (tagName === 'label') {
 				msg.setAttribute('for', elem.id);
+			} else {
+				msg.setAttribute('data-for', elem.id);
 			}
 
 			placeholder.elem.getAttribute('data-pdforms-messages-prepend') ?
@@ -547,6 +553,42 @@
 
 		return parameters;
 	};
+
+
+	/**
+	 * Fills in the suggestion from clicked e.target into associated input element.
+	 */
+	pdForms.useSuggestion = function(e) {
+		e.preventDefault();
+
+		var suggestion = e.target.text;
+		var elem = pdForms.getSuggestionInput(e.target);
+
+		if (! suggestion || ! elem) {
+			return false;
+		}
+
+		// clear suggestion message and validate again
+		pdForms.removeMessages(elem, true);
+		pdForms.setInputValue(elem, suggestion);
+		pdForms.liveValidation({ target: elem });
+	};
+
+
+	/**
+	 * For given suggestion element inside validation message finds and returns associated input element (or null).
+	 */
+	pdForms.getSuggestionInput = function(suggestion) {
+		var msgElem = suggestion.closest('.pdforms-message');
+
+		if (! msgElem) {
+			return null;
+		}
+
+		var elemId = msgElem.getAttribute('for') || msgElem.getAttribute('data-for');
+
+		return document.getElementById(elemId);
+	}
 
 
 	/**
@@ -644,6 +686,9 @@
 		addDelegatedEventListener(form, 'validate focusout',        'textarea, input:not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"])', pdForms.liveValidation);
 		addDelegatedEventListener(form, 'validate focusout change', 'select', pdForms.liveValidation);
 		addDelegatedEventListener(form, 'validate change',          'input[type="checkbox"], input[type="radio"]', pdForms.liveValidation);
+
+		// Suggestions from custom messages
+		addDelegatedEventListener(form, 'click', '.pdforms-suggestion', pdForms.useSuggestion);
 
 		// Validation on custom events
 		var pdformsValidateOnArr = Array.prototype.slice.call(form.elements);
