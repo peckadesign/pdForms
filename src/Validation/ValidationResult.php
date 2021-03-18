@@ -4,25 +4,17 @@ namespace Pd\Forms\Validation;
 
 final class ValidationResult implements \JsonSerializable
 {
-	/**
-	 * @var bool
-	 */
-	private $valid;
 
-	/**
-	 * @var string|null
-	 */
-	private $status;
+	private bool $valid;
+
+	private ?string $status;
 
 	/**
 	 * @var array<mixed>
 	 */
-	private $dependentInputs;
+	private array $dependentInputs = [];
 
-	/**
-	 * @var string
-	 */
-	private $messageType;
+	private string $messageType = '';
 
 
 	public function __construct(bool $valid, ?string $status = NULL)

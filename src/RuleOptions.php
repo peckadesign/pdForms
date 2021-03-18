@@ -4,6 +4,7 @@ namespace Pd\Forms;
 
 final class RuleOptions implements \JsonSerializable
 {
+
 	public const STATUS_INVALID = 'invalid';
 	public const STATUS_VALID = 'valid';
 	public const STATUS_TIMEOUT = 'timeout';
@@ -14,44 +15,33 @@ final class RuleOptions implements \JsonSerializable
 	public const MESSAGE_INFO = 'info';
 	public const MESSAGE_VALID = 'valid';
 
+
 	/**
 	 * @var array<string|null>
 	 */
-	private $validationMessages = [
+	private array $validationMessages = [
 		self::STATUS_INVALID => NULL,
 		self::STATUS_VALID => NULL,
 		self::STATUS_TIMEOUT => '_form_validation_timeout',
 	];
 
-	/**
-	 * @var \Nette\Localization\ITranslator
-	 */
-	private $translator;
+	private \Nette\Localization\ITranslator $translator;
 
-	/**
-	 * @var bool
-	 */
-	private $optional;
+	private bool $optional;
 
-	/**
-	 * @var string
-	 */
-	private $ajaxValidationTarget;
+	private ?string $ajaxValidationTarget = NULL;
 
-	/**
-	 * @var \Pd\Forms\Validation\ValidationServiceInterface|null
-	 */
-	private $validationService;
+	private ?\Pd\Forms\Validation\ValidationServiceInterface $validationService = NULL;
 
 	/**
 	 * @var \Nette\Forms\Controls\BaseControl[]
 	 */
-	private $dependentInputCollection = [];
+	private array $dependentInputCollection = [];
 
 	/**
 	 * @var array<mixed>
 	 */
-	private $contextStorage = [];
+	private array $contextStorage = [];
 
 
 	public function __construct(
@@ -223,4 +213,5 @@ final class RuleOptions implements \JsonSerializable
 
 		return $serialized;
 	}
+
 }

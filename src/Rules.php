@@ -4,6 +4,7 @@ namespace Pd\Forms;
 
 final class Rules
 {
+
 	public const AJAX = self::class . '::ajax';
 	public const NETTE_RULE_PROXY = self::class . '::netteRuleProxy';
 
@@ -97,4 +98,5 @@ final class Rules
 
 		return \Pd\Utils\Validators::isCzechCompanyIdentifier($control->getValue());
 	}
+
 }

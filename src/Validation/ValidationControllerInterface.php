@@ -4,6 +4,7 @@ namespace Pd\Forms\Validation;
 
 interface ValidationControllerInterface
 {
+
 	/**
 	 * @param mixed $inputValue
 	 * @param array<string> $dependentInputs
@@ -12,4 +13,5 @@ interface ValidationControllerInterface
 
 
 	public function getValidationService(): \Pd\Forms\Validation\ValidationServiceInterface;
+
 }
