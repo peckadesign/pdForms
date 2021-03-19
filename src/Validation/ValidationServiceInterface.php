@@ -7,7 +7,7 @@ interface ValidationServiceInterface
 
 	/**
 	 * @param mixed $value
-	 * @param array<string> $dependentInputs
+	 * @param array<string, array<string, mixed>> $dependentInputs
 	 */
 	public function validateInput($value, array $dependentInputs = []): \Pd\Forms\Validation\ValidationResult;
 

@@ -7,7 +7,7 @@ interface ValidationControllerInterface
 
 	/**
 	 * @param mixed $inputValue
-	 * @param array<string> $dependentInputs
+	 * @param array<string, array<string, mixed>> $dependentInputs
 	 */
 	public function actionDefault($inputValue = NULL, array $dependentInputs = []): void;
 
