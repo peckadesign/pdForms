@@ -189,7 +189,7 @@
 
 			// if ajax validator is used, validate & push into queue of not-yet resolved rules
 			if (rule.isAjax) {
-				var key = pdForms.getAjaxQueueKey(elem, op);
+				var key = pdForms.getAjaxQueueKey(elem, op, rule.arg.ajaxUrl);
 				pdForms.ajaxQueue[key] = {
 					msg: rule.msg,
 					isOptional: rule.isOptional,
@@ -274,8 +274,8 @@
 	/**
 	 * Get key to ajax queue for given element and operation
 	 */
-	pdForms.getAjaxQueueKey = function(elem, op) {
-		return elem.getAttribute('id') + '--' + op;
+	pdForms.getAjaxQueueKey = function(elem, op, url) {
+		return elem.getAttribute('id') + '--' + op + '--' + url;
 	};
 
 
@@ -284,7 +284,7 @@
 	 * after response is received.
 	 */
 	pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
-		var key = pdForms.getAjaxQueueKey(elem, op);
+		var key = pdForms.getAjaxQueueKey(elem, op, arg.ajaxUrl);
 
 		// found request in queue, otherwise do nothing
 		if (key in pdForms.ajaxQueue) {
