@@ -41,6 +41,25 @@ final class ValidationResultTest extends \Tester\TestCase
 		$validationResult->addDependentInput('second', 2);
 
 		\Tester\Assert::same(\Nette\Utils\Json::encode($expected), \Nette\Utils\Json::encode($validationResult));
+
+		$validationResultWithMessage = new \Pd\Forms\Validation\ValidationResult(TRUE);
+		$validationResultWithMessage->setMessage('My message');
+
+		$expected = [
+			'valid' => TRUE,
+			'message' => 'My message',
+		];
+
+		\Tester\Assert::same(\Nette\Utils\Json::encode($expected), \Nette\Utils\Json::encode($validationResultWithMessage));
+	}
+
+
+	public function testResultDynamicMessage(): void
+	{
+		$validation = new \Pd\Forms\Validation\ValidationResult(TRUE);
+		\Tester\Assert::null($validation->getMessage());
+		$validation->setMessage('Test');
+		\Tester\Assert::equal('Test', $validation->getMessage());
 	}
 
 }

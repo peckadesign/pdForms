@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.3.0
+ * @version 3.4.2
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.3.0';
+	pdForms.version = '3.4.2';
 
 
 	/**
@@ -189,7 +189,7 @@
 
 			// if ajax validator is used, validate & push into queue of not-yet resolved rules
 			if (rule.isAjax) {
-				var key = pdForms.getAjaxQueueKey(elem, op);
+				var key = pdForms.getAjaxQueueKey(elem, op, rule.arg.ajaxUrl);
 				pdForms.ajaxQueue[key] = {
 					msg: rule.msg,
 					isOptional: rule.isOptional,
@@ -274,8 +274,8 @@
 	/**
 	 * Get key to ajax queue for given element and operation
 	 */
-	pdForms.getAjaxQueueKey = function(elem, op) {
-		return elem.getAttribute('id') + '--' + op;
+	pdForms.getAjaxQueueKey = function(elem, op, url) {
+		return elem.getAttribute('id') + '--' + op + '--' + url;
 	};
 
 
@@ -284,7 +284,7 @@
 	 * after response is received.
 	 */
 	pdForms.ajaxEvaluate = function(elem, op, status, payload, arg) {
-		var key = pdForms.getAjaxQueueKey(elem, op);
+		var key = pdForms.getAjaxQueueKey(elem, op, arg.ajaxUrl);
 
 		// found request in queue, otherwise do nothing
 		if (key in pdForms.ajaxQueue) {
@@ -298,24 +298,25 @@
 				// remove old messages, only when onlyCheck is false
 				pdForms.removeMessages(elem, true);
 
-				if (status in msg && msg[status]) {
-					var msgType = pdForms.constants.MESSAGE_ERROR;
+				var msgType = pdForms.constants.MESSAGE_ERROR;
 
-					if (typeof payload === 'object' && payload.messageType) {
-						msgType = payload.messageType;
-					} else if (status === 'timeout') {
-						msgType = pdForms.constants.MESSAGE_INFO;
-					} else if (status === 'valid') {
-						msgType = pdForms.constants.MESSAGE_VALID;
-					}
-
-					if (isOptional && msgType === pdForms.constants.MESSAGE_ERROR) {
-						msgType = pdForms.constants.MESSAGE_INFO;
-					}
-
-					pdForms.addMessage(elem, msg[status], msgType, true);
+				if (typeof payload === 'object' && payload.messageType) {
+					msgType = payload.messageType;
+				} else if (status === 'timeout') {
+					msgType = pdForms.constants.MESSAGE_INFO;
+				} else if (status === 'valid') {
+					msgType = pdForms.constants.MESSAGE_VALID;
 				}
-				else if (status === 'valid') {
+
+				if (isOptional && msgType === pdForms.constants.MESSAGE_ERROR) {
+					msgType = pdForms.constants.MESSAGE_INFO;
+				}
+
+				if (typeof payload === 'object' && payload.message) {
+					pdForms.addMessage(elem, payload.message, msgType, true, false);
+				} else if (status in msg && msg[status]) {
+					pdForms.addMessage(elem, msg[status], msgType, true);
+				} else if (status === 'valid') {
 					// add pdforms-valid class name if the input is valid and no message is specified
 					pdForms.addMessage(elem, null, pdForms.constants.MESSAGE_VALID, true);
 				}
@@ -354,14 +355,19 @@
 				var input = document.getElementById(inputId);
 
 				if (input && ! input.value) {
-					var ev = document.createEvent('Event');
-					ev.initEvent('change', true, true);
-
-					input.value = payload.dependentInputs[inputId];
-					input.dispatchEvent(ev);
+					pdForms.setInputValue(input, payload.dependentInputs[inputId]);
 				}
 			}
 		}
+	};
+
+
+	pdForms.setInputValue = function (elem, value) {
+		var ev = document.createEvent('Event');
+		ev.initEvent('change', true, true);
+
+		elem.value = value;
+		elem.dispatchEvent(ev);
 	};
 
 
@@ -409,7 +415,7 @@
 	 * Using data-pdforms-messages-tagname we could change the default span (p in case of global messages) element.
 	 * Using data-pdforms-messages-global on elem we could force the message to be displayed in global message placeholder.
 	 */
-	pdForms.addMessage = function(elem, message, type, isAjaxRuleMessage) {
+	pdForms.addMessage = function(elem, message, type, isAjaxRuleMessage, escapeMessage) {
 		var placeholder = pdForms.getMessagePlaceholder(elem);
 
 		if (! placeholder.elem) {
@@ -441,7 +447,13 @@
 			className = (tagName === 'p') ? 'message message--' + type : className;
 
 			var msg = document.createElement(tagName);
-			msg.textContent = message;
+
+			if (typeof escapeMessage === 'undefined' || escapeMessage) {
+				msg.textContent = message;
+			} else {
+				msg.innerHTML = message;
+			}
+
 			msg.setAttribute('class', className + ' pdforms-message');
 			msg.setAttribute('data-elem', elem.name);
 
@@ -451,6 +463,8 @@
 
 			if (tagName === 'label') {
 				msg.setAttribute('for', elem.id);
+			} else {
+				msg.setAttribute('data-for', elem.id);
 			}
 
 			placeholder.elem.getAttribute('data-pdforms-messages-prepend') ?
@@ -539,6 +553,42 @@
 
 		return parameters;
 	};
+
+
+	/**
+	 * Fills in the suggestion from clicked e.target into associated input element.
+	 */
+	pdForms.useSuggestion = function(e) {
+		e.preventDefault();
+
+		var suggestion = e.target.text;
+		var elem = pdForms.getSuggestionInput(e.target);
+
+		if (! suggestion || ! elem) {
+			return false;
+		}
+
+		// clear suggestion message and validate again
+		pdForms.removeMessages(elem, true);
+		pdForms.setInputValue(elem, suggestion);
+		pdForms.liveValidation({ target: elem });
+	};
+
+
+	/**
+	 * For given suggestion element inside validation message finds and returns associated input element (or null).
+	 */
+	pdForms.getSuggestionInput = function(suggestion) {
+		var msgElem = suggestion.closest('.pdforms-message');
+
+		if (! msgElem) {
+			return null;
+		}
+
+		var elemId = msgElem.getAttribute('for') || msgElem.getAttribute('data-for');
+
+		return document.getElementById(elemId);
+	}
 
 
 	/**
@@ -636,6 +686,9 @@
 		addDelegatedEventListener(form, 'validate focusout',        'textarea, input:not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"])', pdForms.liveValidation);
 		addDelegatedEventListener(form, 'validate focusout change', 'select', pdForms.liveValidation);
 		addDelegatedEventListener(form, 'validate change',          'input[type="checkbox"], input[type="radio"]', pdForms.liveValidation);
+
+		// Suggestions from custom messages
+		addDelegatedEventListener(form, 'click', '.pdforms-suggestion', pdForms.useSuggestion);
 
 		// Validation on custom events
 		var pdformsValidateOnArr = Array.prototype.slice.call(form.elements);
