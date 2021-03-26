@@ -1,0 +1,27 @@
+name: Package CI
+
+on:
+  pull_request:
+
+jobs:
+  checks:
+    name: Checks
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: [ 7.4, 8.0 ]
+    steps:
+      - uses: actions/checkout@v2
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+
+      - run: make composer
+
+      - if: matrix.php == '8.0'
+        run: make cs
+
+      - if: matrix.php == '8.0'
+        run: make phpstan
+
+      - run: make run-tests
