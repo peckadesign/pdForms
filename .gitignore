@@ -1,5 +1,5 @@
 /.*
 !.gitignore
-!.travis.yml
+!.github
 composer.lock
 vendor/
