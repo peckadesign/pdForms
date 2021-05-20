@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.4.3
+ * @version 3.4.4
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.4.3';
+	pdForms.version = '3.4.4';
 
 
 	/**
@@ -683,9 +683,9 @@
 
 		addDelegatedEventListener(form, 'focusout change', 'select, textarea, input:not([type="submit"]):not([type="reset"])', setEverFocused);
 
-		addDelegatedEventListener(form, 'validate focusout',        'textarea, input:not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"])', pdForms.liveValidation);
+		addDelegatedEventListener(form, 'validate focusout',        'textarea, input:not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="file"])', pdForms.liveValidation);
 		addDelegatedEventListener(form, 'validate focusout change', 'select', pdForms.liveValidation);
-		addDelegatedEventListener(form, 'validate change',          'input[type="checkbox"], input[type="radio"]', pdForms.liveValidation);
+		addDelegatedEventListener(form, 'validate change',          'input[type="checkbox"], input[type="radio"], input[type="file"]', pdForms.liveValidation);
 
 		// Suggestions from custom messages
 		addDelegatedEventListener(form, 'click', '.pdforms-suggestion', pdForms.useSuggestion);
