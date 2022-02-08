@@ -36,7 +36,7 @@
 	}
 
 
-	function doSubmit(token, form) {
+	function doSubmit(form) {
 		// Take care of $.nette.ajax
 		if (isNetteAjaxForm(form)) {
 			var initExt = $.nette.ext('init');
@@ -102,7 +102,12 @@
 							var form = item.closest('form');
 							var widgetId = grecaptcha.render(item, {
 								callback: function(token) {
-									doSubmit(token, form);
+									var inputs = form.getElementsByClassName('g-recaptcha-response');
+									for (var i = 0; i < inputs.length; i++) {
+										inputs[i].value = token;
+									}
+
+									doSubmit(form);
 								}
 							});
 
