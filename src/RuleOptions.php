@@ -179,6 +179,7 @@ final class RuleOptions implements \JsonSerializable
 	/**
 	 * @return array<mixed>
 	 */
+	#[\ReturnTypeWillChange]
 	public function jsonSerialize()
 	{
 		$serialized = [
