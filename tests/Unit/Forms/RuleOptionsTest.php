@@ -53,6 +53,7 @@ final class RuleOptionsTest extends \Tester\TestCase
 			->addContext('gimme 2', ['fuel', 'fire'])
 			->addContext('class', new class () implements \JsonSerializable {
 
+				#[\ReturnTypeWillChange]
 				public function jsonSerialize()
 				{
 					return ['serialized' => 'class'];

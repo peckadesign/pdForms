@@ -75,6 +75,7 @@ final class ValidationResult implements \JsonSerializable
 	/**
 	 * @return array<mixed>
 	 */
+	#[\ReturnTypeWillChange]
 	public function jsonSerialize()
 	{
 		$valid = [
