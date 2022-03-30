@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.5.0
+ * @version 3.6.0
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.5.0';
+	pdForms.version = '3.6.0';
 
 
 	/**
@@ -400,6 +400,14 @@
 
 
 	/**
+	 * Returns class name used for generated message.
+	 */
+	pdForms.getMessageClassName = function (isGlobalMessage, tagName, type) {
+		return (tagName === 'p') ? ('message message--' + type) : ('inp-' + type);
+	}
+
+
+	/**
 	 * Display message. Either input associated or (if appropriate selector not found) as "global" form message.
 	 * Message placeholding:
 	 * 	1. First we try to find elements parent .pdforms-messages--input
@@ -434,17 +442,12 @@
 			return false;
 		}
 
-		var tagName = 'label';
-		var className = 'inp-' + type;
-
-		if (placeholder.isGlobal) {
-			tagName = 'p';
-		}
+		var tagName = placeholder.isGlobal ? 'p' : 'label';
 
 		// global message or non-error message or first error message
 		if (placeholder.isGlobal || type !== pdForms.constants.MESSAGE_ERROR || (type === pdForms.constants.MESSAGE_ERROR && ((' ' + placeholder.elem.className + ' ').indexOf(' ' + type + ' ') === -1))) {
 			tagName = placeholder.elem.getAttribute('data-pdforms-messages-tagname') || tagName;
-			className = (tagName === 'p') ? 'message message--' + type : className;
+			var className = pdForms.getMessageClassName(placeholder.isGlobal, tagName, type);
 
 			var msg = document.createElement(tagName);
 
