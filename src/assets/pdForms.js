@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.6.0
+ * @version 3.6.1
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.6.0';
+	pdForms.version = '3.6.1';
 
 
 	/**
@@ -142,7 +142,7 @@
 	 * This function is not used when validating whole form, eg. by submit event.
 	 */
 	pdForms.liveValidation = function(e) {
-		var validate = [e.target];
+		var validate = e.target.type === 'radio' ? Array.from(e.target.form[e.target.name]) : [e.target];
 		var groupName = e.target.getAttribute('data-pdforms-validation-group');
 
 		if (groupName) {
@@ -672,7 +672,18 @@
 	var setEverFocused = function(e) {
 		var everFocused = e.target.getAttribute('data-pdforms-ever-focused');
 
-		if (! everFocused) {
+		if (everFocused) {
+			return;
+		}
+
+		if (e.target.type === 'radio') {
+			var radioList = e.target.form[e.target.name];
+
+			for (var i = 0; i < radioList.length; i++) {
+				radioList.item(i).setAttribute('data-pdforms-ever-focused', true);
+			}
+
+		} else {
 			e.target.setAttribute('data-pdforms-ever-focused', true);
 		}
 	}
