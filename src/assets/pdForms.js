@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 3.6.1
+ * @version 3.6.2
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '3.6.1';
+	pdForms.version = '3.6.2';
 
 
 	/**
@@ -142,7 +142,9 @@
 	 * This function is not used when validating whole form, eg. by submit event.
 	 */
 	pdForms.liveValidation = function(e) {
-		var validate = e.target.type === 'radio' ? Array.from(e.target.form[e.target.name]) : [e.target];
+		// Validate event target or (in case of radio button) first radio of RadioNodeList. Nette sets the
+		// data-nette-rules only for the first radio of given name, so we always validate that radio.
+		var validate = e.target.type === 'radio' ? [e.target.form[e.target.name].item(0)] : [e.target];
 		var groupName = e.target.getAttribute('data-pdforms-validation-group');
 
 		if (groupName) {
@@ -464,10 +466,8 @@
 				msg.setAttribute('data-ajax-rule', true);
 			}
 
-			if (tagName === 'label') {
-				msg.setAttribute('for', elem.id);
-			} else {
-				msg.setAttribute('data-for', elem.id);
+			if (elem.id) {
+				msg.setAttribute(tagName === 'label' ? 'for' : 'data-for', elem.id);
 			}
 
 			placeholder.elem.getAttribute('data-pdforms-messages-prepend') ?
@@ -670,22 +670,16 @@
 	 * Setting flag that input has been focused, so we won't notify about errors in fields user has not yet filled
 	 */
 	var setEverFocused = function(e) {
-		var everFocused = e.target.getAttribute('data-pdforms-ever-focused');
+		// We only ever validate the first radio, so in case of radio, we find first radio in RadioNodeList (see the
+		// reason explained in pdForms.liveValidation)
+		var elem = e.target.type === 'radio' ? e.target.form[e.target.name].item(0) : e.target;
+		var everFocused = elem.getAttribute('data-pdforms-ever-focused');
 
 		if (everFocused) {
 			return;
 		}
 
-		if (e.target.type === 'radio') {
-			var radioList = e.target.form[e.target.name];
-
-			for (var i = 0; i < radioList.length; i++) {
-				radioList.item(i).setAttribute('data-pdforms-ever-focused', true);
-			}
-
-		} else {
-			e.target.setAttribute('data-pdforms-ever-focused', true);
-		}
+		elem.setAttribute('data-pdforms-ever-focused', true);
 	}
 
 
