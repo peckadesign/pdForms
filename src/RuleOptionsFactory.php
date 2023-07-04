@@ -9,11 +9,11 @@ final class RuleOptionsFactory
 	private const NETTE_RULE_ARGS = 'netteRuleArgs';
 
 
-	private \Nette\Localization\ITranslator $translator;
+	private \Nette\Localization\Translator $translator;
 
 
 	public function __construct(
-		\Nette\Localization\ITranslator $translator
+		\Nette\Localization\Translator $translator
 	) {
 		$this->translator = $translator;
 	}
