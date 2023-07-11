@@ -25,7 +25,7 @@ final class RuleOptions implements \JsonSerializable
 		self::STATUS_TIMEOUT => '_form_validation_timeout',
 	];
 
-	private \Nette\Localization\ITranslator $translator;
+	private \Nette\Localization\Translator $translator;
 
 	private bool $optional;
 
@@ -45,7 +45,7 @@ final class RuleOptions implements \JsonSerializable
 
 
 	public function __construct(
-		\Nette\Localization\ITranslator $translator,
+		\Nette\Localization\Translator $translator,
 		bool $optional
 	) {
 		$this->translator = $translator;
