@@ -144,7 +144,7 @@
 	pdForms.liveValidation = function(e) {
 		// Validate event target or (in case of radio button) first radio of RadioNodeList. Nette sets the
 		// data-nette-rules only for the first radio of given name, so we always validate that radio.
-		var validate = e.target.type === 'radio' ? [e.target.form[e.target.name].item(0)] : [e.target];
+		var validate = (e.target.form[e.target.name] instanceof RadioNodeList) ? [e.target.form[e.target.name].item(0)] : [e.target];
 		var groupName = e.target.getAttribute('data-pdforms-validation-group');
 
 		if (groupName) {
@@ -672,7 +672,7 @@
 	var setEverFocused = function(e) {
 		// We only ever validate the first radio, so in case of radio, we find first radio in RadioNodeList (see the
 		// reason explained in pdForms.liveValidation)
-		var elem = e.target.type === 'radio' ? e.target.form[e.target.name].item(0) : e.target;
+		var elem = (e.target.form[e.target.name] instanceof RadioNodeList) ? e.target.form[e.target.name].item(0) : e.target;
 		var everFocused = elem.getAttribute('data-pdforms-ever-focused');
 
 		if (everFocused) {
