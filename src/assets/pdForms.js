@@ -595,6 +595,31 @@
 
 
 	/**
+	 * Scroll into first error after validation.
+	 */
+	pdForms.afterValidationScroll = function (form, firstErrorElem) {
+		if (! firstErrorElem) {
+			form.scrollIntoView();
+			return;
+		}
+
+		var placeholder = pdForms.getMessagePlaceholder(firstErrorElem)
+
+		if (placeholder.isGlobal || firstErrorElem.type === 'hidden') {
+			(placeholder.elem ?? form).scrollIntoView()
+
+			firstErrorElem.focus({
+				preventScroll: true
+			});
+
+			return;
+		}
+
+		firstErrorElem.focus()
+	}
+
+
+	/**
 	 * Optional rules are defined using "optional" property in "arg". We have to convert arg into Nette format before
 	 * validating. This means removing all properties but data from arg and storing them elsewhere.
 	 */
@@ -644,8 +669,8 @@
 			}
 		}
 
-		if (focusElem) {
-			focusElem.focus();
+		if (errors.length) {
+			pdForms.afterValidationScroll(form, focusElem);
 		}
 	};
 
