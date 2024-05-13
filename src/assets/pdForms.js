@@ -712,6 +712,11 @@
 	 * Setup handlers.
 	 */
 	Nette.initForm = function (form) {
+		// Skip already initialized forms
+		if (form.noValidate) {
+			return;
+		}
+
 		pdForms.Nette.initForm(form);
 
 		addDelegatedEventListener(form, 'focusout change', 'select, textarea, input:not([type="submit"]):not([type="reset"])', setEverFocused);
