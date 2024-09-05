@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 4.1.1
+ * @version 4.1.2
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '4.1.1';
+	pdForms.version = '4.1.2';
 
 
 	/**
@@ -155,6 +155,7 @@
 				}
 			}
 		}
+
 
 		validate.forEach(function(elem) {
 			if (elem.getAttribute('data-pdforms-ever-focused')) {
@@ -711,13 +712,16 @@
 	/**
 	 * Setup handlers.
 	 */
-	Nette.initForm = function (form) {
+	Nette.initForm = function (form, event) {
 		// Skip already initialized forms
 		if (form.noValidate) {
+			// Always call the original `initForm` method. This method handles already initialised forms itself.
+			pdForms.Nette.initForm(form, event);
+
 			return;
 		}
 
-		pdForms.Nette.initForm(form);
+		pdForms.Nette.initForm(form, event);
 
 		addDelegatedEventListener(form, 'focusout change', 'select, textarea, input:not([type="submit"]):not([type="reset"])', setEverFocused);
 
