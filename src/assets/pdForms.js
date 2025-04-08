@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 4.1.3
+ * @version 4.1.4
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '4.1.3';
+	pdForms.version = '4.1.4';
 
 
 	/**
@@ -620,12 +620,12 @@
 	 * validating. This means removing all properties but data from arg and storing them elsewhere.
 	 */
 	Nette.validateControl = function(elem, rules, onlyCheck, value, emptyOptional) {
+		elem = elem.tagName ? elem : elem[0]; // RadioNodeList
+
 		// assumes the input is valid, therefore removing all messages except those associated with ajax rules; this
 		// prevents flashing of message, when ajax rule is evaluated - ajax rules removes their messages when the ajax
 		// rule is evaluated
 		pdForms.removeMessages(elem, false);
-
-		elem = elem.tagName ? elem : elem[0]; // RadioNodeList
 
 		if (! rules) {
 			rules = JSON.parse(elem.getAttribute('data-nette-rules') || '[]');
