@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 4.1.4
+ * @version 4.1.5
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '4.1.4';
+	pdForms.version = '4.1.5';
 
 
 	/**
@@ -601,7 +601,11 @@
 
 		var placeholder = pdForms.getMessagePlaceholder(firstErrorElem)
 
-		if (placeholder.isGlobal || firstErrorElem.type === 'hidden') {
+		if (
+			placeholder.isGlobal ||
+			(placeholder.elem && placeholder.elem.getAttribute('data-pdforms-messages-prepend')) ||
+			firstErrorElem.type === 'hidden'
+		) {
 			(placeholder.elem ?? form).scrollIntoView()
 
 			firstErrorElem.focus({
