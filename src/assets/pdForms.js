@@ -601,7 +601,11 @@
 
 		var placeholder = pdForms.getMessagePlaceholder(firstErrorElem)
 
-		if (placeholder.isGlobal || firstErrorElem.type === 'hidden') {
+		if (
+			placeholder.isGlobal ||
+			(placeholder.elem && placeholder.elem.getAttribute('data-pdforms-messages-prepend')) ||
+			firstErrorElem.type === 'hidden'
+		) {
 			(placeholder.elem ?? form).scrollIntoView()
 
 			firstErrorElem.focus({
