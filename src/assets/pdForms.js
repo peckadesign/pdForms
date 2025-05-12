@@ -54,7 +54,8 @@
 	pdForms.Nette = {
 		validateControl: Nette.validateControl,
 		toggleControl:   Nette.toggleControl,
-		initForm:        Nette.initForm
+		initForm:        Nette.initForm,
+		validateForm:    Nette.validateForm
 	};
 
 
@@ -619,17 +620,32 @@
 	}
 
 
+	pdForms.removeFormMessages = function(form) {
+		var radios = {};
+
+		for (var i = 0; i < form.elements.length; i++) {
+			var elem = form.elements[i];
+
+			if (elem.tagName && !(elem.tagName.toLowerCase() in {input: 1, select: 1, textarea: 1, button: 1})) {
+				continue;
+			} else if (elem.type === 'radio') {
+				if (radios[elem.name]) {
+					continue;
+				}
+				radios[elem.name] = true;
+			}
+
+			pdForms.removeMessages(elem, false);
+		}
+	}
+
+
 	/**
 	 * Optional rules are defined using "optional" property in "arg". We have to convert arg into Nette format before
 	 * validating. This means removing all properties but data from arg and storing them elsewhere.
 	 */
 	Nette.validateControl = function(elem, rules, onlyCheck, value, emptyOptional) {
 		elem = elem.tagName ? elem : elem[0]; // RadioNodeList
-
-		// assumes the input is valid, therefore removing all messages except those associated with ajax rules; this
-		// prevents flashing of message, when ajax rule is evaluated - ajax rules removes their messages when the ajax
-		// rule is evaluated
-		pdForms.removeMessages(elem, false);
 
 		if (! rules) {
 			rules = JSON.parse(elem.getAttribute('data-nette-rules') || '[]');
@@ -656,6 +672,16 @@
 
 		pdForms.Nette.toggleControl(elem, rules, success, firsttime, value);
 	};
+
+
+	Nette.validateForm = function(sender, onlyCheck) {
+		// Assumes the form is valid, therefore removing all messages except those associated with ajax rules. This
+		// prevents flashing of messages when the ajax rule is evaluated - ajax rules removes their messages when the
+		// ajax rule is evaluated.
+		pdForms.removeFormMessages(sender.form || sender);
+
+		return pdForms.Nette.validateForm(sender, onlyCheck);
+	}
 
 
 	/**
