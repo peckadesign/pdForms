@@ -160,6 +160,11 @@
 
 		validate.forEach(function(elem) {
 			if (elem.getAttribute('data-pdforms-ever-focused')) {
+				// Assumes the input is valid, therefore removing all messages except those associated with ajax rules.
+				// This prevents flashing of messages when the ajax rule is evaluated - ajax rules remove their messages
+				// when the ajax rule is evaluated
+				pdForms.removeMessages(elem, false);
+
 				var rules = JSON.parse(elem.getAttribute('data-nette-rules') || '[]');
 				rules = pdForms.normalizeRules(rules);
 
