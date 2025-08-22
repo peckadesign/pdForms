@@ -18,13 +18,13 @@
 		}
 	],
 	"require": {
-		"php": "^7.4 || ^8.0",
+		"php": "^8.1",
 		"ext-json": "*",
 		"nette/application": "~2.4|~3.0.0|~3.1.0",
 		"nette/forms": "~2.4|~3.0.0|~3.1.0",
-		"contributte/recaptcha": "^3.1",
+		"contributte/recaptcha": "^4.0.2",
 		"nette/di": "~2.4|^3.0.0",
-		"nette/utils": "~2.4|~3.0.0|~3.1.0|~3.2.0",
+		"nette/utils": "~2.4|~3.0.0|~3.1.0|~3.2.0|~4.0.3",
 		"pd/utils": "^1.0"
 	},
 	"require-dev": {
