@@ -394,8 +394,6 @@
 				placeholder = elem.form.querySelector('.pdforms-messages--global');
 				isGlobal = true;
 			}
-
-			placeholder = placeholder?.querySelector('.pdforms-messages__aria') || placeholder
 		}
 
 		return {
@@ -419,7 +417,7 @@
 	 * 	1. First we try to find elements parent .pdforms-messages--input
 	 * 	2. If there is not any, then try to find closest p
 	 * 	3. If still no success, try to find .pdforms-messages--global
-	 * 	4. If placeholder contains .pdforms-messages__aria, it will be set as placeholder, otherwise we keep placeholder as is
+	 * 	4. If placeholder contains .pdforms-messages__aria, message will be inserted into it instead of placeholder element
 	 *
 	 * If two or more inputs with validation rules are in same message placeholder (eg. <p> or .pdforms-messages--input), the
 	 * validation won't work as expected - class .error will be determined by last validated input in the placeholder and
@@ -474,6 +472,8 @@
 			if (elem.id) {
 				msg.setAttribute(tagName === 'label' ? 'for' : 'data-for', elem.id);
 			}
+
+			placeholder.elem = placeholder.elem?.querySelector('.pdforms-messages__aria') || placeholder.elem
 
 			placeholder.elem.getAttribute('data-pdforms-messages-prepend') ?
 				placeholder.elem.insertAdjacentElement('afterBegin', msg) :
