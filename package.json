@@ -2,7 +2,7 @@
 	"name": "pd-forms",
 	"title": "pdForms",
 	"description": "Customization of netteForms for use in PeckaDesign.",
-	"version": "4.3.0",
+	"version": "4.3.1",
 	"author": "PeckaDesign, s.r.o <support@peckadesign.cz>",
 	"contributors": [
 		"Radek Šerý <radek.sery@peckadesign.cz>",
@@ -25,9 +25,11 @@
 	"scripts": {
 		"minifyRecaptcha": "uglifyjs -o src/assets/recaptcha/nette.ajax/pdForms.recaptcha.min.js src/assets/recaptcha/nette.ajax/pdForms.recaptcha.js"
 	},
-	"dependencies": {
-		"jquery": ">=1.7",
-		"nette-forms": ">=2.4.0 <3.2.0",
+	"peerDependencies": {
+		"nette-forms": ">=2.4.0 <3.2.0"
+	},
+	"optionalDependencies": {
+		"jQuery": ">=1.7",
 		"nette.ajax.js": "^2.0.0"
 	},
 	"devDependencies": {
