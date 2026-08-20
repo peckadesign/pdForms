@@ -376,6 +376,30 @@
 
 
 	/**
+	 * Elements which may serve as a message placeholder of a single control. Plain `p` is not part of this selector
+	 * on purpose - it is used as a fallback only, so that a `p` without its own messages element (eg. an item of a
+	 * checkbox list) doesn't shadow the placeholder of the whole list.
+	 */
+	pdForms.placeholderSelector = '.pdforms-messages--input, p:has(> .pdforms-messages__aria)';
+
+	/**
+	 * Elements delimiting the placeholder of one control from a placeholder of a control nested inside it.
+	 */
+	pdForms.placeholderBoundarySelector = '.pdforms-messages--input, p';
+
+
+	/**
+	 * Find the element messages are inserted into. Only the placeholder's own messages element is used, elements
+	 * belonging to nested controls are skipped.
+	 */
+	pdForms.getMessagesTarget = function(placeholder) {
+		var selector = '.pdforms-messages__aria:not(:scope :is(' + pdForms.placeholderBoundarySelector + ') .pdforms-messages__aria)';
+
+		return placeholder.querySelector(selector) || placeholder;
+	};
+
+
+	/**
 	 * Find the placeholder element for a given input element.
 	 */
 	pdForms.getMessagePlaceholder = function(elem) {
@@ -387,7 +411,7 @@
 
 		} else {
 			placeholder =
-				elem.closest('.pdforms-messages--input') ||
+				elem.closest(pdForms.placeholderSelector) ||
 				elem.closest('p');
 
 			if (! placeholder) {
@@ -414,10 +438,12 @@
 	/**
 	 * Display message. Either input associated or (if appropriate selector not found) as "global" form message.
 	 * Message placeholding:
-	 * 	1. First we try to find elements parent .pdforms-messages--input
+	 * 	1. First we try to find closest elements parent matching pdForms.placeholderSelector, ie. either
+	 * 	   .pdforms-messages--input or a p having its own .pdforms-messages__aria
 	 * 	2. If there is not any, then try to find closest p
 	 * 	3. If still no success, try to find .pdforms-messages--global
-	 * 	4. If placeholder contains .pdforms-messages__aria, message will be inserted into it instead of placeholder element
+	 * 	4. If placeholder contains its own .pdforms-messages__aria, message will be inserted into it instead of
+	 * 	   placeholder element; messages elements of nested controls are skipped, see pdForms.getMessagesTarget
 	 *
 	 * If two or more inputs with validation rules are in same message placeholder (eg. <p> or .pdforms-messages--input), the
 	 * validation won't work as expected - class .error will be determined by last validated input in the placeholder and
@@ -473,7 +499,7 @@
 				msg.setAttribute(tagName === 'label' ? 'for' : 'data-for', elem.id);
 			}
 
-			placeholder.elem = placeholder.elem?.querySelector('.pdforms-messages__aria') || placeholder.elem
+			placeholder.elem = pdForms.getMessagesTarget(placeholder.elem)
 
 			placeholder.elem.getAttribute('data-pdforms-messages-prepend') ?
 				placeholder.elem.insertAdjacentElement('afterBegin', msg) :
@@ -496,7 +522,7 @@
 
 		// Find placeholders for input (input and global)
 		var placeholder =
-			elem.closest('.pdforms-messages--input') ||
+			elem.closest(pdForms.placeholderSelector) ||
 			elem.closest('p');
 
 		var globalPlaceholder = elem.form.querySelector('.pdforms-messages--global');
