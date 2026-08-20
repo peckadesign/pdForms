@@ -28,7 +28,7 @@ Pokud chcete validovat formulářové pole při libovolné jiné události (`key
 V případě validační chyby se vypsání chyby řídí několika pravidly. V prvné řadě je možno určit, zda se má chyba vypsat přímo u formulářového prvku nebo "globálně" v určeném místě.
 
 #### Vypsání chyby přímo u formulářového prvku
-Toto chování je výchozí, element pro vložení chybové hlášky se hledá v DOM jako nejbližší rodič s class `pdforms-messages--input` nebo jako nejbližší `<p>`, který má vlastní element zpráv `pdforms-messages__aria`. Pokud takový rodič neexistuje, použije se nejbližší tag `<p>`. Do tohoto prvku je pak vložena validační zpráva v následujícím formátu:
+Toto chování je výchozí, element pro vložení chybové hlášky se hledá v DOM jako nejbližší rodič s class `pdforms-messages--input` nebo jako nejbližší rodič, který má vlastní element zpráv `pdforms-messages__aria`. Pokud takový rodič neexistuje, použije se nejbližší tag `<p>`. Do tohoto prvku je pak vložena validační zpráva v následujícím formátu:
 ```html
 <label for="muj_input" data-elem="muj_input" class="inp-error pdforms-message">Text validační zprávy</label>
 ``` 
@@ -37,7 +37,7 @@ Pokud nechceme použít pro validační chyby element `label`, lze pomocí data 
 
 Zda se label prvek vloží na začátek nebo konec elementu můžeme ovlivnit uvedením `data-pdforms-messages-prepend="true"`, výchozí chování je vložení nakonec. Tento data atribut se neuvádí na formulářový prvek, ale prvek, do kterého se validační zpráva vkládá.
 
-Pokud nalezený element obsahuje vlastní element s class `pdforms-messages__aria` (typicky `aria-live` region), vkládají se zprávy do něj. Elementy zpráv patřící vnořeným formulářovým prvkům se přeskakují, tj. nepoužije se takový, mezi kterým a nalezeným elementem leží další `pdforms-messages--input` nebo `<p>`. Díky tomu je možné mít uvnitř elementu `pdforms-messages--input` (např. uvnitř `<fieldset>` s radiolistem) vnořené další formulářové prvky s vlastními zprávami.
+Pokud nalezený element obsahuje vlastní element s class `pdforms-messages__aria` (typicky `aria-live` region), vkládají se zprávy do něj. Elementy zpráv patřící vnořeným formulářovým prvkům se přeskakují, tj. nepoužije se takový, mezi kterým a nalezeným elementem leží element, který sám může být placeholderem (`pdforms-messages--input`, element s vlastním elementem zpráv, nebo `<p>`). Díky tomu je možné mít uvnitř elementu `pdforms-messages--input` (např. uvnitř `<fieldset>` s radiolistem) vnořené další formulářové prvky s vlastními zprávami.
 
 V případě, že se podle výše uvedeného postupu nenajde element pro vložení zprávy, zkouší se zpráva umístit do "globálního" elementu zpráv.
 
