@@ -17,9 +17,7 @@
 			spinner: '.pdforms-ajax-spinner--' + elem.id,
 			off: ['snippets', 'history', 'unique', 'abort'],
 			beforeSend: function(jqXHR, settings) {
-				elem.classList ?
-					elem.classList.add('inp-loading') :
-					elem.className += ' inp-loading';
+				elem.classList.add('inp-loading');
 			},
 			success: function(payload) {
 				var status = payload.status || (payload.valid ? 'valid' : 'invalid');
@@ -30,9 +28,7 @@
 				pdForms.ajaxEvaluate(elem, op, error, undefined, arg);
 			},
 			complete: function(jqXHR, status, settings) {
-				elem.classList ?
-					elem.classList.remove('inp-loading') :
-					elem.className = (' ' + elem.className + ' ').replace(' inp-loading ', ' ').trim();
+				elem.classList.remove('inp-loading');
 			}
 		};
 	};

@@ -24,11 +24,11 @@
 			return false;
 		}
 
-		if ((' ' + form.className + ' ').indexOf(' ajax ') > -1) {
+		if (form.classList.contains('ajax')) {
 			return true;
 		}
 
-		if (form['nette-submittedBy'] && (' ' + form['nette-submittedBy'].className + ' ').indexOf(' ajax ') > -1) {
+		if (form['nette-submittedBy'] && form['nette-submittedBy'].classList.contains('ajax')) {
 			return true;
 		}
 
