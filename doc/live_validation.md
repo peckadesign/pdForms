@@ -37,9 +37,15 @@ Pokud nechceme použít pro validační chyby element `label`, lze pomocí data 
 
 Zda se label prvek vloží na začátek nebo konec elementu můžeme ovlivnit uvedením `data-pdforms-messages-prepend="true"`, výchozí chování je vložení nakonec. Tento data atribut se neuvádí na formulářový prvek, ale prvek, do kterého se validační zpráva vkládá.
 
+Na nalezený element se zároveň přidává class `pdforms-(error|info|valid)` označující stav formulářového prvku. Element pro vložení zprávy a element nesoucí tuto class přitom nemusí být tentýž, viz dále.
+
 Pokud nalezený element obsahuje vlastní element s class `pdforms-messages__aria` (typicky `aria-live` region), vkládají se zprávy do něj. Elementy zpráv patřící vnořeným formulářovým prvkům se přeskakují, tj. nepoužije se takový, mezi kterým a nalezeným elementem leží element, který sám může být placeholderem (`pdforms-messages--input`, element s vlastním elementem zpráv, nebo `<p>`). Díky tomu je možné mít uvnitř elementu `pdforms-messages--input` (např. uvnitř `<fieldset>` s radiolistem) vnořené další formulářové prvky s vlastními zprávami.
 
 V případě, že se podle výše uvedeného postupu nenajde element pro vložení zprávy, zkouší se zpráva umístit do "globálního" elementu zpráv.
 
 #### Vypsání chyby v "globálním" elementu zpráv 
 Přidáním data atributu `data-pdforms-messages-global="true"` na formulářový prvek můžeme natavit, že zprávy chceme vkládat pohromadě do nějakého globální elementu ve stránce. Ten se pak hledá podle class `pdforms-messages--global`. V tomto případě je výchozí tag pro zprávy `<p>` (tj. i výchozí class je jiná), jinak platí stejná pravidla pro možnost nastavení tagu i formát class.
+
+Do globálního elementu se vkládají pouze samotné zprávy. Class `pdforms-(error|info|valid)` označující stav formulářového prvku se přidává na jeho vlastní placeholder, tj. hledá se podle stejných pravidel, jako kdyby globální element neexistoval. Na globální element se class přidá pouze v případě, že formulářový prvek žádný vlastní placeholder nemá.
+
+Class zůstává na placeholderu tak dlouho, dokud v něm (nebo v globálním elementu) zbývá alespoň jedna zpráva náležející prvku, který tento placeholder používá. Zprávy vnořených formulářových prvků mají vlastní placeholder, takže class nadřazeného placeholderu nedrží.
