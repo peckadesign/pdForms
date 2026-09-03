@@ -384,9 +384,18 @@
 
 
 	/**
+	 * Find the control's own placeholder, ie. the element carrying the pdforms-* classes and, unless the messages are
+	 * placed globally, the element messages are inserted into.
+	 */
+	pdForms.getInputPlaceholder = function(elem) {
+		return elem.closest(pdForms.placeholderSelector) || elem.closest('p');
+	};
+
+
+	/**
 	 * Find the element messages are inserted into. Only the placeholder's own messages element is used, elements
 	 * belonging to nested controls are skipped. Nesting is delimited by everything which may become a placeholder
-	 * of another control, ie. by pdForms.placeholderSelector plus the `p` fallback from getMessagePlaceholder.
+	 * of another control, ie. by pdForms.placeholderSelector plus the `p` fallback from getInputPlaceholder.
 	 */
 	pdForms.getMessagesTarget = function(placeholder) {
 		var selector = '.pdforms-messages__aria:not(:scope :is(' + pdForms.placeholderSelector + ', p) .pdforms-messages__aria)';
@@ -396,30 +405,33 @@
 
 
 	/**
-	 * Find the placeholder element for a given input element.
+	 * Find the placeholder elements for a given input element. Messages are inserted into `elem`, which may be the
+	 * global messages element, while the pdforms-* classes belong to `classElem`, ie. to the control's own placeholder
+	 * whenever there is any.
 	 */
 	pdForms.getMessagePlaceholder = function(elem) {
-		var placeholder = null;
-		var isGlobal = elem.getAttribute('data-pdforms-messages-global') !== null;
-
-		if (isGlobal) {
-			placeholder = elem.form.querySelector('.pdforms-messages--global');
-
-		} else {
-			placeholder =
-				elem.closest(pdForms.placeholderSelector) ||
-				elem.closest('p');
-
-			if (! placeholder) {
-				placeholder = elem.form.querySelector('.pdforms-messages--global');
-				isGlobal = true;
-			}
-		}
+		var placeholder = pdForms.getInputPlaceholder(elem);
+		var isGlobal = elem.getAttribute('data-pdforms-messages-global') !== null || placeholder === null;
+		var globalPlaceholder = isGlobal ? elem.form.querySelector('.pdforms-messages--global') : null;
 
 		return {
-			elem: placeholder,
+			elem: isGlobal ? globalPlaceholder : placeholder,
+			classElem: placeholder || globalPlaceholder,
 			isGlobal: isGlobal
 		};
+	};
+
+
+	/**
+	 * Does the message belong to the given class placeholder? A message belongs to the placeholder of its own control,
+	 * so messages of nested controls don't count towards the placeholder of the outer one.
+	 */
+	pdForms.isPlaceholderMessage = function(form, msg, classElem) {
+		var input = form.elements[msg.getAttribute('data-elem')];
+
+		input = input && ! input.tagName ? input[0] : input; // RadioNodeList
+
+		return input ? pdForms.getMessagePlaceholder(input).classElem === classElem : false;
 	};
 
 
@@ -441,6 +453,10 @@
 	 * 	4. If placeholder contains its own .pdforms-messages__aria, message will be inserted into it instead of
 	 * 	   placeholder element; messages elements of nested controls are skipped, see pdForms.getMessagesTarget
 	 *
+	 * The pdforms-* class is not added to the element the message is inserted into, but to the control's own
+	 * placeholder found in steps 1 and 2. The global element is used for the class only when the control has no
+	 * placeholder of its own.
+	 *
 	 * If two or more inputs with validation rules are in same message placeholder (eg. <p> or .pdforms-messages--input), the
 	 * validation won't work as expected - class .error will be determined by last validated input in the placeholder and
 	 * messages may disappear unexpectedly :) In that case, you might be better with using .pdforms-messages--global or splitting
@@ -461,9 +477,7 @@
 			type = pdForms.constants.MESSAGE_ERROR;
 		}
 
-		placeholder.elem.classList ?
-			placeholder.elem.classList.add('pdforms-' + type) :
-			placeholder.elem.className += ' pdforms-' + type;
+		placeholder.classElem.classList.add('pdforms-' + type);
 
 		if (! message) {
 			return false;
@@ -472,7 +486,7 @@
 		var tagName = placeholder.isGlobal ? 'p' : 'label';
 
 		// global message or non-error message or first error message
-		if (placeholder.isGlobal || type !== pdForms.constants.MESSAGE_ERROR || (type === pdForms.constants.MESSAGE_ERROR && ((' ' + placeholder.elem.className + ' ').indexOf(' ' + type + ' ') === -1))) {
+		if (placeholder.isGlobal || type !== pdForms.constants.MESSAGE_ERROR || (type === pdForms.constants.MESSAGE_ERROR && ! placeholder.classElem.classList.contains(type))) {
 			tagName = placeholder.elem.getAttribute('data-pdforms-messages-tagname') || tagName;
 			var className = pdForms.getMessageClassName(placeholder.isGlobal, tagName, type);
 
@@ -516,10 +530,9 @@
 			removeAjaxRulesMessages = true;
 		}
 
-		// Find placeholders for input (input and global)
-		var placeholder =
-			elem.closest(pdForms.placeholderSelector) ||
-			elem.closest('p');
+		// Find placeholders for input (input and global) and the element carrying the pdforms-* classes
+		var placeholder = pdForms.getInputPlaceholder(elem);
+		var classElem = pdForms.getMessagePlaceholder(elem).classElem;
 
 		var globalPlaceholder = elem.form.querySelector('.pdforms-messages--global');
 
@@ -551,13 +564,16 @@
 			}
 		}
 
-		// If there is no message remaining in .pdforms-messages--input placeholder, then remove the placeholder class as well.
-		if (placeholder && messages.input.length === 0) {
+		// The pdforms-* classes are kept as long as any message belonging to the same placeholder remains, ie. a message
+		// of any control sharing that placeholder. Messages of nested controls belong to their own placeholder, so they
+		// don't keep the classes of the outer one.
+		var keepClasses = messages.input.concat(messages.global).some(function(msg) {
+			return pdForms.isPlaceholderMessage(elem.form, msg, classElem);
+		});
+
+		if (classElem && ! keepClasses) {
 			for (var i in pdForms.constants) {
-				var className = 'pdforms-' + pdForms.constants[i];
-				placeholder.classList ?
-					placeholder.classList.remove(className) :
-					placeholder.className = (' ' + placeholder.className + ' ').replace(' ' + className + ' ', ' ').trim();
+				classElem.classList.remove('pdforms-' + pdForms.constants[i]);
 			}
 		}
 
