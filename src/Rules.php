@@ -22,7 +22,7 @@ final class Rules
 	/**
 	 * @param \Nette\Forms\Controls\BaseControl $control
 	 */
-	public static function ajax(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	public static function ajax(\Nette\Forms\Control $control, \Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options->isOptional()) {
 			return TRUE;
@@ -54,13 +54,13 @@ final class Rules
 	/**
 	 * Rule is never validated on backend, used for proxying nette rules as optional only
 	 */
-	public static function netteRuleProxy(\Nette\Forms\IControl $control, \Pd\Forms\RuleOptions $options): bool
+	public static function netteRuleProxy(\Nette\Forms\Control $control, \Pd\Forms\RuleOptions $options): bool
 	{
 		return TRUE;
 	}
 
 
-	public static function phone(\Nette\Forms\IControl $control, ?\Pd\Forms\RuleOptions $options): bool
+	public static function phone(\Nette\Forms\Control $control, ?\Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options !== NULL && $options->isOptional()) {
 			return TRUE;
@@ -70,7 +70,7 @@ final class Rules
 	}
 
 
-	public static function containsNumber(\Nette\Forms\IControl $control, ?\Pd\Forms\RuleOptions $options): bool
+	public static function containsNumber(\Nette\Forms\Control $control, ?\Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options !== NULL && $options->isOptional()) {
 			return TRUE;
@@ -80,7 +80,7 @@ final class Rules
 	}
 
 
-	public static function noExternalSources(\Nette\Forms\IControl $control, ?\Pd\Forms\RuleOptions $options): bool
+	public static function noExternalSources(\Nette\Forms\Control $control, ?\Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options !== NULL && ($options->isOptional() || ! $control->getValue())) {
 			return TRUE;
@@ -90,7 +90,7 @@ final class Rules
 	}
 
 
-	public static function czechCompanyIdentifier(\Nette\Forms\IControl $control, ?\Pd\Forms\RuleOptions $options): bool
+	public static function czechCompanyIdentifier(\Nette\Forms\Control $control, ?\Pd\Forms\RuleOptions $options): bool
 	{
 		if ($options !== NULL && $options->isOptional()) {
 			return TRUE;
