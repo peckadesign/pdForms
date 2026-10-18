@@ -49,13 +49,14 @@
 
 
 	/**
-	 * Nette methods which are later overridden
+	 * Nette methods which are later overridden. Since nette/forms 3.2 is Nette an instance of class FormValidator with
+	 * private fields, so the original methods must stay bound to it.
 	 */
 	pdForms.Nette = {
-		validateControl: Nette.validateControl,
-		toggleControl:   Nette.toggleControl,
-		initForm:        Nette.initForm,
-		validateForm:    Nette.validateForm
+		validateControl: Nette.validateControl.bind(Nette),
+		toggleControl:   Nette.toggleControl.bind(Nette),
+		initForm:        Nette.initForm.bind(Nette),
+		validateForm:    Nette.validateForm.bind(Nette)
 	};
 
 
@@ -712,11 +713,11 @@
 	/**
 	 * See annotation above.
 	 */
-	Nette.toggleControl = function(elem, rules, success, firsttime, value) {
+	Nette.toggleControl = function(elem, rules, success, firsttime, value, emptyOptional) {
 		// convert arg property in rules into Nette format
 		rules = pdForms.normalizeRules(rules);
 
-		pdForms.Nette.toggleControl(elem, rules, success, firsttime, value);
+		return pdForms.Nette.toggleControl(elem, rules, success, firsttime, value, emptyOptional);
 	};
 
 
