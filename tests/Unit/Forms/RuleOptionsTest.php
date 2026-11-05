@@ -90,6 +90,24 @@ final class RuleOptionsTest extends \Tester\TestCase
 	}
 
 
+	public function testDependentInputWithoutHtmlId(): void
+	{
+		$required = $this->ruleOptionsFactory->createRequired()
+			->enableAjax('http://ajaxValidationTarget.pecka', $this->validationService)
+		;
+
+		$inputMock = \Mockery::mock(\Nette\Forms\Controls\TextInput::class);
+		$inputMock->shouldReceive('getHtmlId')->andReturn(FALSE);
+		$inputMock->shouldReceive('getForm')->andReturn(NULL); // intentionally
+
+		$required->addDependentInput('first', $inputMock);
+
+		\Tester\Assert::exception(static function () use ($required): void {
+			\Nette\Utils\Json::encode($required);
+		}, \Nette\InvalidStateException::class, 'Dependent input "%a?%" has no HTML id.');
+	}
+
+
 	public function testValidationState(): void
 	{
 		$required = $this->ruleOptionsFactory->createRequired();

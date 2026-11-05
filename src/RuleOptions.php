@@ -203,7 +203,13 @@ final class RuleOptions implements \JsonSerializable
 		if (\count($this->dependentInputCollection)) {
 			$serialized['dependentInputs'] =
 				\array_map(static function (\Nette\Forms\Controls\BaseControl $input): string {
-					return (string) $input->getHtmlId();
+					$htmlId = $input->getHtmlId();
+
+					if ( ! \is_string($htmlId)) {
+						throw new \Nette\InvalidStateException(\sprintf('Dependent input "%s" has no HTML id.', $input->getName()));
+					}
+
+					return $htmlId;
 				}, $this->dependentInputCollection)
 			;
 		}
