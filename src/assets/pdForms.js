@@ -384,11 +384,132 @@
 
 
 	/**
+	 * Browsers without :has() support (Firefox < 121, Chrome < 105, Safari < 15.4) throw on any selector containing it,
+	 * so placeholders are looked up by walking the DOM there.
+	 */
+	var supportsHas = (function() {
+		try {
+			document.documentElement.matches(':has(*)');
+
+			return true;
+		} catch (e) {
+			return false;
+		}
+	})();
+
+
+	/**
+	 * Split a selector list on top-level commas, keeping commas inside parentheses (:is(), :not(), :has()) and quoted
+	 * attribute values. Returns null when the parentheses are not balanced.
+	 */
+	var splitSelectorList = function(selector) {
+		var parts = [];
+		var depth = 0;
+		var start = 0;
+		var quote = null;
+
+		for (var i = 0; i < selector.length; i++) {
+			var character = selector.charAt(i);
+
+			if (quote) {
+				if (character === '\\') {
+					i++;
+				} else if (character === quote) {
+					quote = null;
+				}
+			} else if (character === '"' || character === '\'') {
+				quote = character;
+			} else if (character === '(') {
+				depth++;
+			} else if (character === ')') {
+				depth--;
+
+				if (depth < 0) {
+					return null;
+				}
+			} else if (character === ',' && depth === 0) {
+				parts.push(selector.slice(start, i).trim());
+				start = i + 1;
+			}
+		}
+
+		parts.push(selector.slice(start).trim());
+
+		return depth === 0 ? parts : null;
+	};
+
+
+	/**
+	 * Turn one selector of pdForms.placeholderSelector into a test usable without :has() support. Understood is a
+	 * selector ending with a single :has() of child or descendant selectors, eg. `.field:has(> .pdforms-messages__aria)`.
+	 * Other forms of :has() can't be evaluated there and never match.
+	 */
+	var compileSelector = function(selector) {
+		var hasStart = selector.indexOf(':has(');
+
+		if (hasStart === -1) {
+			return function(elem) {
+				return elem.matches(selector);
+			};
+		}
+
+		var compound = selector.slice(0, hasStart).replace(/[\s>+~]$/, '$&*');
+		var inner = selector.slice(hasStart + 5, -1);
+		var relatives = selector.slice(-1) === ')' && inner.indexOf(':has(') === -1 ? splitSelectorList(inner) : null;
+
+		if (! relatives || relatives.some(function(relative) { return /^[+~]/.test(relative); })) {
+			return function() {
+				return false;
+			};
+		}
+
+		return function(elem) {
+			if (compound && ! elem.matches(compound)) {
+				return false;
+			}
+
+			return relatives.some(function(relative) {
+				return elem.querySelector(':scope ' + relative) !== null;
+			});
+		};
+	};
+
+
+	var placeholderTests = { selector: null, tests: [] };
+
+	/**
+	 * Does the element match pdForms.placeholderSelector? Used in browsers without :has() support.
+	 */
+	var isPlaceholder = function(elem) {
+		if (placeholderTests.selector !== pdForms.placeholderSelector) {
+			placeholderTests = {
+				selector: pdForms.placeholderSelector,
+				tests: (splitSelectorList(pdForms.placeholderSelector) || []).map(compileSelector)
+			};
+		}
+
+		return placeholderTests.tests.some(function(test) {
+			return test(elem);
+		});
+	};
+
+
+	/**
 	 * Find the control's own placeholder, ie. the element carrying the pdforms-* classes and, unless the messages are
 	 * placed globally, the element messages are inserted into.
 	 */
 	pdForms.getInputPlaceholder = function(elem) {
-		return elem.closest(pdForms.placeholderSelector) || elem.closest('p');
+		if (supportsHas) {
+			return elem.closest(pdForms.placeholderSelector) || elem.closest('p');
+		}
+
+		for (var parent = elem; parent; parent = parent.parentElement) {
+			if (isPlaceholder(parent)) {
+				return parent;
+			}
+		}
+
+		return elem.closest('p');
 	};
 
 
@@ -398,9 +519,28 @@
 	 * of another control, ie. by pdForms.placeholderSelector plus the `p` fallback from getInputPlaceholder.
 	 */
 	pdForms.getMessagesTarget = function(placeholder) {
-		var selector = '.pdforms-messages__aria:not(:scope :is(' + pdForms.placeholderSelector + ', p) .pdforms-messages__aria)';
+		if (supportsHas) {
+			var selector = '.pdforms-messages__aria:not(:scope :is(' + pdForms.placeholderSelector + ', p) .pdforms-messages__aria)';
 
-		return placeholder.querySelector(selector) || placeholder;
+			return placeholder.querySelector(selector) || placeholder;
+		}
+
+		var targets = placeholder.querySelectorAll('.pdforms-messages__aria');
+
+		for (var i = 0; i < targets.length; i++) {
+			var parent = targets[i].parentElement;
+
+			// Same rule as the selector above: skip targets nested in another placeholder or `p`
+			while (parent !== placeholder && ! parent.matches('p') && ! isPlaceholder(parent)) {
+				parent = parent.parentElement;
+			}
+
+			if (parent === placeholder) {
+				return targets[i];
+			}
+		}
+
+		return placeholder;
 	};
 
 
