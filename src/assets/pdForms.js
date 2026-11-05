@@ -399,18 +399,27 @@
 
 
 	/**
-	 * Split a selector list on top-level commas, keeping commas inside parentheses (:is(), :not(), :has()). Returns
-	 * null when the parentheses are not balanced.
+	 * Split a selector list on top-level commas, keeping commas inside parentheses (:is(), :not(), :has()) and quoted
+	 * attribute values. Returns null when the parentheses are not balanced.
 	 */
 	var splitSelectorList = function(selector) {
 		var parts = [];
 		var depth = 0;
 		var start = 0;
+		var quote = null;
 
 		for (var i = 0; i < selector.length; i++) {
 			var character = selector.charAt(i);
 
-			if (character === '(') {
+			if (quote) {
+				if (character === '\\') {
+					i++;
+				} else if (character === quote) {
+					quote = null;
+				}
+			} else if (character === '"' || character === '\'') {
+				quote = character;
+			} else if (character === '(') {
 				depth++;
 			} else if (character === ')') {
 				depth--;
