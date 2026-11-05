@@ -384,11 +384,55 @@
 
 
 	/**
+	 * Browsers without :has() support (Firefox < 121, Chrome < 105, Safari < 15.4) throw on any selector containing it,
+	 * so placeholders are looked up by walking the DOM there.
+	 */
+	var supportsHas = (function() {
+		try {
+			document.documentElement.matches(':has(*)');
+
+			return true;
+		} catch (e) {
+			return false;
+		}
+	})();
+
+
+	/**
+	 * Does the element match pdForms.placeholderSelector? Used in browsers without :has() support, so besides plain
+	 * selectors only the `:has(> selector)` form is understood.
+	 */
+	var isPlaceholder = function(elem) {
+		return pdForms.placeholderSelector.split(',').some(function(selector) {
+			var childSelector = selector.trim().match(/^:has\(\s*>\s*(.+)\)$/);
+
+			if (! childSelector) {
+				return elem.matches(selector.trim());
+			}
+
+			return Array.prototype.some.call(elem.children, function(child) {
+				return child.matches(childSelector[1]);
+			});
+		});
+	};
+
+
+	/**
 	 * Find the control's own placeholder, ie. the element carrying the pdforms-* classes and, unless the messages are
 	 * placed globally, the element messages are inserted into.
 	 */
 	pdForms.getInputPlaceholder = function(elem) {
-		return elem.closest(pdForms.placeholderSelector) || elem.closest('p');
+		if (supportsHas) {
+			return elem.closest(pdForms.placeholderSelector) || elem.closest('p');
+		}
+
+		for (var parent = elem; parent; parent = parent.parentElement) {
+			if (isPlaceholder(parent)) {
+				return parent;
+			}
+		}
+
+		return elem.closest('p');
 	};
 
 
@@ -398,9 +442,27 @@
 	 * of another control, ie. by pdForms.placeholderSelector plus the `p` fallback from getInputPlaceholder.
 	 */
 	pdForms.getMessagesTarget = function(placeholder) {
-		var selector = '.pdforms-messages__aria:not(:scope :is(' + pdForms.placeholderSelector + ', p) .pdforms-messages__aria)';
+		if (supportsHas) {
+			var selector = '.pdforms-messages__aria:not(:scope :is(' + pdForms.placeholderSelector + ', p) .pdforms-messages__aria)';
 
-		return placeholder.querySelector(selector) || placeholder;
+			return placeholder.querySelector(selector) || placeholder;
+		}
+
+		var targets = placeholder.querySelectorAll('.pdforms-messages__aria');
+
+		for (var i = 0; i < targets.length; i++) {
+			var parent = targets[i].parentElement;
+
+			while (parent !== placeholder && ! parent.matches('p') && ! isPlaceholder(parent)) {
+				parent = parent.parentElement;
+			}
+
+			if (parent === placeholder) {
+				return targets[i];
+			}
+		}
+
+		return placeholder;
 	};
 
 
