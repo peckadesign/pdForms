@@ -399,20 +399,88 @@
 
 
 	/**
-	 * Does the element match pdForms.placeholderSelector? Used in browsers without :has() support, so besides plain
-	 * selectors only the `:has(> selector)` form is understood.
+	 * Split a selector list on top-level commas, keeping commas inside parentheses (:is(), :not(), :has()). Returns
+	 * null when the parentheses are not balanced.
 	 */
-	var isPlaceholder = function(elem) {
-		return pdForms.placeholderSelector.split(',').some(function(selector) {
-			var childSelector = selector.trim().match(/^:has\(\s*>\s*(.+)\)$/);
+	var splitSelectorList = function(selector) {
+		var parts = [];
+		var depth = 0;
+		var start = 0;
 
-			if (! childSelector) {
-				return elem.matches(selector.trim());
+		for (var i = 0; i < selector.length; i++) {
+			var character = selector.charAt(i);
+
+			if (character === '(') {
+				depth++;
+			} else if (character === ')') {
+				depth--;
+
+				if (depth < 0) {
+					return null;
+				}
+			} else if (character === ',' && depth === 0) {
+				parts.push(selector.slice(start, i).trim());
+				start = i + 1;
+			}
+		}
+
+		parts.push(selector.slice(start).trim());
+
+		return depth === 0 ? parts : null;
+	};
+
+
+	/**
+	 * Turn one selector of pdForms.placeholderSelector into a test usable without :has() support. Understood is a
+	 * selector ending with a single :has() of child or descendant selectors, eg. `.field:has(> .pdforms-messages__aria)`.
+	 * Other forms of :has() can't be evaluated there and never match.
+	 */
+	var compileSelector = function(selector) {
+		var hasStart = selector.indexOf(':has(');
+
+		if (hasStart === -1) {
+			return function(elem) {
+				return elem.matches(selector);
+			};
+		}
+
+		var compound = selector.slice(0, hasStart).replace(/[\s>+~]$/, '$&*');
+		var inner = selector.slice(hasStart + 5, -1);
+		var relatives = selector.slice(-1) === ')' && inner.indexOf(':has(') === -1 ? splitSelectorList(inner) : null;
+
+		if (! relatives || relatives.some(function(relative) { return /^[+~]/.test(relative); })) {
+			return function() {
+				return false;
+			};
+		}
+
+		return function(elem) {
+			if (compound && ! elem.matches(compound)) {
+				return false;
 			}
 
-			return Array.prototype.some.call(elem.children, function(child) {
-				return child.matches(childSelector[1]);
+			return relatives.some(function(relative) {
+				return elem.querySelector(':scope ' + relative) !== null;
 			});
+		};
+	};
+
+
+	var placeholderTests = { selector: null, tests: [] };
+
+	/**
+	 * Does the element match pdForms.placeholderSelector? Used in browsers without :has() support.
+	 */
+	var isPlaceholder = function(elem) {
+		if (placeholderTests.selector !== pdForms.placeholderSelector) {
+			placeholderTests = {
+				selector: pdForms.placeholderSelector,
+				tests: (splitSelectorList(pdForms.placeholderSelector) || []).map(compileSelector)
+			};
+		}
+
+		return placeholderTests.tests.some(function(test) {
+			return test(elem);
 		});
 	};
 
@@ -453,6 +521,7 @@
 		for (var i = 0; i < targets.length; i++) {
 			var parent = targets[i].parentElement;
 
+			// Same rule as the selector above: skip targets nested in another placeholder or `p`
 			while (parent !== placeholder && ! parent.matches('p') && ! isPlaceholder(parent)) {
 				parent = parent.parentElement;
 			}
