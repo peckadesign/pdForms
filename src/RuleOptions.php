@@ -196,14 +196,14 @@ final class RuleOptions implements \JsonSerializable
 
 		if (\count($messages)) {
 			$serialized['msg'] = \array_map(function (string $message): string {
-				return $this->translator->translate($message);
+				return (string) $this->translator->translate($message);
 			}, $messages);
 		}
 
 		if (\count($this->dependentInputCollection)) {
 			$serialized['dependentInputs'] =
 				\array_map(static function (\Nette\Forms\Controls\BaseControl $input): string {
-					return $input->getHtmlId();
+					return (string) $input->getHtmlId();
 				}, $this->dependentInputCollection)
 			;
 		}
