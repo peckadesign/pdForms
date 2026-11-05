@@ -102,9 +102,10 @@ final class RuleOptionsTest extends \Tester\TestCase
 
 		$required->addDependentInput('first', $inputMock);
 
+		// getName() is final, so the mock runs the real method and an unattached input has no name
 		\Tester\Assert::exception(static function () use ($required): void {
 			\Nette\Utils\Json::encode($required);
-		}, \Nette\InvalidStateException::class, 'Dependent input "%a?%" has no HTML id.');
+		}, \Nette\InvalidStateException::class, 'Dependent input "" has no HTML id.');
 	}
 
 
