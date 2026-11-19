@@ -195,7 +195,7 @@ final class RuleOptions implements \JsonSerializable
 		}
 
 		if (\count($messages)) {
-			$serialized['msg'] = \array_map(function (string $message): string {
+			$serialized['msg'] = \array_map(function (string $message): string|\Stringable {
 				return $this->translator->translate($message);
 			}, $messages);
 		}
