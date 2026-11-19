@@ -26,7 +26,7 @@
 		"minifyRecaptcha": "uglifyjs -o src/assets/recaptcha/nette.ajax/pdForms.recaptcha.min.js src/assets/recaptcha/nette.ajax/pdForms.recaptcha.js"
 	},
 	"peerDependencies": {
-		"nette-forms": ">=2.4.0 <3.2.0"
+		"nette-forms": ">=3.1.0 <3.5.0"
 	},
 	"optionalDependencies": {
 		"jquery": ">=1.7",
