@@ -384,21 +384,6 @@
 
 
 	/**
-	 * Browsers without :has() support (Firefox < 121, Chrome < 105, Safari < 15.4) throw on any selector containing it,
-	 * so placeholders are looked up by walking the DOM there.
-	 */
-	var supportsHas = (function() {
-		try {
-			document.documentElement.matches(':has(*)');
-
-			return true;
-		} catch (e) {
-			return false;
-		}
-	})();
-
-
-	/**
 	 * Split a selector list on top-level commas, keeping commas inside parentheses (:is(), :not(), :has()) and quoted
 	 * attribute values. Returns null when the parentheses are not balanced.
 	 */
@@ -478,7 +463,7 @@
 	var placeholderTests = { selector: null, tests: [] };
 
 	/**
-	 * Does the element match pdForms.placeholderSelector? Used in browsers without :has() support.
+	 * Does the element match pdForms.placeholderSelector? Used when the browser can't evaluate the selector itself.
 	 */
 	var isPlaceholder = function(elem) {
 		if (placeholderTests.selector !== pdForms.placeholderSelector) {
@@ -495,14 +480,9 @@
 
 
 	/**
-	 * Find the control's own placeholder, ie. the element carrying the pdforms-* classes and, unless the messages are
-	 * placed globally, the element messages are inserted into.
+	 * Same as pdForms.getInputPlaceholder, but without passing pdForms.placeholderSelector to the browser.
 	 */
-	pdForms.getInputPlaceholder = function(elem) {
-		if (supportsHas) {
-			return elem.closest(pdForms.placeholderSelector) || elem.closest('p');
-		}
-
+	var getInputPlaceholderByWalking = function(elem) {
 		for (var parent = elem; parent; parent = parent.parentElement) {
 			if (isPlaceholder(parent)) {
 				return parent;
@@ -514,17 +494,9 @@
 
 
 	/**
-	 * Find the element messages are inserted into. Only the placeholder's own messages element is used, elements
-	 * belonging to nested controls are skipped. Nesting is delimited by everything which may become a placeholder
-	 * of another control, ie. by pdForms.placeholderSelector plus the `p` fallback from getInputPlaceholder.
+	 * Same as pdForms.getMessagesTarget, but without passing pdForms.placeholderSelector to the browser.
 	 */
-	pdForms.getMessagesTarget = function(placeholder) {
-		if (supportsHas) {
-			var selector = '.pdforms-messages__aria:not(:scope :is(' + pdForms.placeholderSelector + ', p) .pdforms-messages__aria)';
-
-			return placeholder.querySelector(selector) || placeholder;
-		}
-
+	var getMessagesTargetByWalking = function(placeholder) {
 		var targets = placeholder.querySelectorAll('.pdforms-messages__aria');
 
 		for (var i = 0; i < targets.length; i++) {
@@ -541,6 +513,38 @@
 		}
 
 		return placeholder;
+	};
+
+
+	/**
+	 * Find the control's own placeholder, ie. the element carrying the pdforms-* classes and, unless the messages are
+	 * placed globally, the element messages are inserted into.
+	 *
+	 * Browsers without :has() support (Firefox < 121, Chrome < 105, Safari < 15.4) throw on the default
+	 * pdForms.placeholderSelector, the placeholder is looked up by walking the DOM there.
+	 */
+	pdForms.getInputPlaceholder = function(elem) {
+		try {
+			return elem.closest(pdForms.placeholderSelector) || elem.closest('p');
+		} catch (e) {
+			return getInputPlaceholderByWalking(elem);
+		}
+	};
+
+
+	/**
+	 * Find the element messages are inserted into. Only the placeholder's own messages element is used, elements
+	 * belonging to nested controls are skipped. Nesting is delimited by everything which may become a placeholder
+	 * of another control, ie. by pdForms.placeholderSelector plus the `p` fallback from getInputPlaceholder.
+	 */
+	pdForms.getMessagesTarget = function(placeholder) {
+		var selector = '.pdforms-messages__aria:not(:scope :is(' + pdForms.placeholderSelector + ', p) .pdforms-messages__aria)';
+
+		try {
+			return placeholder.querySelector(selector) || placeholder;
+		} catch (e) {
+			return getMessagesTargetByWalking(placeholder);
+		}
 	};
 
 
