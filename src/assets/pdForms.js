@@ -1,7 +1,7 @@
 /**
  * @name pdForms
  * @author Radek Šerý <radek.sery@peckadesign.cz>
- * @version 4.6.1
+ * @version 4.6.2
  *
  * Features:
  * - live validation
@@ -45,7 +45,7 @@
 
 	var pdForms = window.pdForms || {};
 
-	pdForms.version = '4.6.1';
+	pdForms.version = '4.6.2';
 
 
 	/**
@@ -759,10 +759,9 @@
 			return false;
 		}
 
-		// clear suggestion message and validate again
+		// clear suggestion message, the change event dispatched by setInputValue validates the input again
 		pdForms.removeMessages(elem, true);
 		pdForms.setInputValue(elem, suggestion);
-		pdForms.liveValidation({ target: elem });
 	};
 
 
@@ -946,9 +945,18 @@
 
 		addDelegatedEventListener(form, 'focusout change', 'select, textarea, input:not([type="submit"]):not([type="reset"])', setEverFocused);
 
-		addDelegatedEventListener(form, 'validate focusout',        'textarea, input:not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="file"])', pdForms.liveValidation);
+		var textInputs = 'textarea, input:not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="file"])';
+
+		addDelegatedEventListener(form, 'validate focusout',        textInputs, pdForms.liveValidation);
 		addDelegatedEventListener(form, 'validate focusout change', 'select', pdForms.liveValidation);
 		addDelegatedEventListener(form, 'validate change',          'input[type="checkbox"], input[type="radio"], input[type="file"]', pdForms.liveValidation);
+
+		// Browser autofill fills inputs without focus, these never get focusout. Focused input validates on focusout.
+		addDelegatedEventListener(form, 'change', textInputs, function(e) {
+			if (e.target !== document.activeElement) {
+				pdForms.liveValidation.call(form, e);
+			}
+		});
 
 		// Suggestions from custom messages
 		addDelegatedEventListener(form, 'click', '.pdforms-suggestion', pdForms.useSuggestion);
