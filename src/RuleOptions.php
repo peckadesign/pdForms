@@ -196,14 +196,20 @@ final class RuleOptions implements \JsonSerializable
 
 		if (\count($messages)) {
 			$serialized['msg'] = \array_map(function (string $message): string {
-				return $this->translator->translate($message);
+				return (string) $this->translator->translate($message);
 			}, $messages);
 		}
 
 		if (\count($this->dependentInputCollection)) {
 			$serialized['dependentInputs'] =
 				\array_map(static function (\Nette\Forms\Controls\BaseControl $input): string {
-					return $input->getHtmlId();
+					$htmlId = $input->getHtmlId();
+
+					if ( ! \is_string($htmlId)) {
+						throw new \Nette\InvalidStateException(\sprintf('Dependent input "%s" has no HTML id.', $input->getName()));
+					}
+
+					return $htmlId;
 				}, $this->dependentInputCollection)
 			;
 		}
